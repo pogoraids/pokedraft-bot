@@ -1,0 +1,20 @@
+{
+  "name": "pokedraft-bot",
+  "version": "0.0.1",
+  "description": "PokeDraft utility bot",
+  "main": "index.js",
+  "scripts": {
+	"test": "echo \"Error: no test specified\" && exit 1",
+	"compile": "\"node_modules/typescript/bin/tsc\"",
+	"run": "node index.js"
+  },
+  "author": "Mathias Rodriguez",
+  "license": "GPL-2.0",
+  "dependencies": {
+    "discord.js": "^11.4.2",
+    "typescript": "^3.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^10.3.2"
+  }
+}

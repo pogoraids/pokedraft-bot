@@ -1,0 +1,1 @@
+export const GREETING = "Bot is alive";
