@@ -7,6 +7,7 @@ Commands:
 - **create-division** \`<catName>\` \`<name>\`: Creates a new \`<name>\` division below the \`<catName>\` category, along with a <name> role.
 - **assign-division** \`<division>\` _[users]_: Assigns the [users] list (mentions or username#discriminator list) to the \`<division>\` division under the \`<catName>\` category.
 - **game-on** \`<division>\` _[users]_: Tags the \`<division>\` on their channel and posts the pick order.
+- **clear-division** \`<division>\`: Deletes the \`<division>\` role (but keeps the channel -for chat purposes-).
 `;
 
 export const GAME_ON_1 = 'Draft starts ';

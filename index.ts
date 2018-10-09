@@ -9,8 +9,6 @@ export class Index {
 		const client = new Discord.Client();
 		const TOKEN = readFileSync('./src/config/token');
 
-		console.log(TOKEN.toString());
-
 		client.on('ready', () => {
 			console.log(GREETING);
 			new Channels().createBotChannel(client);

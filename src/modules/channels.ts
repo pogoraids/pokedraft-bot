@@ -1,6 +1,6 @@
 import * as Discord from 'discord.js';
 import {GAME_ON_1, GAME_ON_2, GAME_ON_3} from '../constants/messages';
-const ID = '498873323682529301';
+import {APP_ID} from '../constants/app';
 
 export class Channels {	
 	constructor() {
@@ -17,7 +17,7 @@ export class Channels {
 			message.channel.send(name + ' category already existent.');
 		} else {
 			guild.createChannel(name, 'category', [{
-				id: ID,
+				id: APP_ID,
 				allowed: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY"]
 			}, {
 				id: everyone.id,
@@ -62,7 +62,7 @@ export class Channels {
 				permissions: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY", "EMBED_LINKS", 'ATTACH_FILES', 'ADD_REACTIONS']
 			}).then((role: Discord.Role) => {
 				guild.createChannel(division, 'text', [{
-					id: ID,
+					id: APP_ID,
 					allowed: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY"]
 				}, {
 					id: role.id,
@@ -90,9 +90,9 @@ export class Channels {
 			if (!guild.channels.find("name","draftbot-admin")) {
 				const role = guild.roles.find(role => role.hasPermission([Discord.Permissions.FLAGS.ADMINISTRATOR]));
 				const everyone = this.getEveryone(guild);
-				
+				// ToDo: remove overwrite and add permissions in the same call
 				guild.createChannel('draftbot-admin', 'text').then((channel: Discord.GuildChannel) => {
-					channel.overwritePermissions(ID, {
+					channel.overwritePermissions(APP_ID, {
 						SEND_MESSAGES: true,
 						READ_MESSAGE_HISTORY: true,
 						READ_MESSAGES: true
@@ -139,7 +139,7 @@ export class Channels {
 		
 		if (message.mentions.members.array().length > 1) {
 			message.mentions.members.array().forEach((member) => {
-				if (member.id != ID) {
+				if (member.id != APP_ID) {
 					member.addRole(divisionRole);
 					userList.push(member.displayName);
 				}
@@ -187,5 +187,33 @@ export class Channels {
 		const memberList = message.content.split('game-on ' + division + ' ')[1].split(' ');
 
 		(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${memberList.join('\n')}\n\n${GAME_ON_3}`);
+	}
+
+	clearDivision(message: Discord.Message, name: string) {
+		const guild = message.guild;
+		
+		if (!guild) { return; }
+		
+		if (!name) { 
+			message.channel.send(name + ' role not found.');
+			return; 
+		}
+		
+		if (!guild.roles.find('name', name.split(' ')[0])) {
+			message.channel.send(name + ' role not found.');
+			return; 
+		}
+
+		const divisionRole = guild.roles.find('name', name);
+
+		let cleared = 0;
+
+		guild.roles.array().forEach((role: Discord.Role) => {
+			if (role.id === divisionRole.id) {
+				role.delete();
+			}
+		});
+
+		message.channel.send(name + " role deleted.");
 	}
 }

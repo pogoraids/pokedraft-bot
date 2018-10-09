@@ -24,6 +24,8 @@ export class Listener {
 				message.channel.send(HELP);
 			} else if (message.content.lastIndexOf('game-on') !== -1) {
 				new Channels().gameOn(message, message.content.split('game-on ')[1]);
+			} else if (message.content.lastIndexOf('clear-division') !== -1) {
+				new Channels().clearDivision(message, message.content.split('clear-division ')[1]);
 			}
 			//message.reply('KHE?!');
 		}
