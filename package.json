@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
 	"test": "echo \"Error: no test specified\" && exit 1",
-	"compile": "\"node_modules/typescript/bin/tsc\"",
+	"compile": "node node_modules\\typescript\\bin\\tsc",
 	"run": "node index.js"
   },
   "author": "Mathias Rodriguez",

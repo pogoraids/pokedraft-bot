@@ -1,4 +1,5 @@
 import * as Discord from 'discord.js';
+import {GAME_ON_1, GAME_ON_2, GAME_ON_3} from '../constants/messages';
 const ID = '498873323682529301';
 
 export class Channels {	
@@ -139,7 +140,6 @@ export class Channels {
 		if (message.mentions.members.array().length > 1) {
 			message.mentions.members.array().forEach((member) => {
 				if (member.id != ID) {
-					console.log(member)
 					member.addRole(divisionRole);
 					userList.push(member.displayName);
 				}
@@ -163,5 +163,29 @@ export class Channels {
 		} else {
 			message.channel.send('No user was assigned to the role/division');
 		}
+	}
+
+	gameOn(message: Discord.Message, name: string) {
+		const guild = message.guild;
+		
+		if (!guild) { return; }
+
+		const [division, members] = name.split(' ');
+
+		if (!division) { return; }
+		else if (!guild.channels.find('name', division)) { 
+			message.channel.send(division + ' channel not found.');
+			return;
+		} else if (!guild.roles.find('name', division)) {
+			message.channel.send(division + ' role not found.');
+			return; 
+		}
+
+		const divisionRole = guild.roles.find('name', division);
+		const divisionChannel = guild.channels.find('name', division);
+		
+		const memberList = message.content.split('game-on ' + division + ' ')[1].split(' ');
+
+		(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${memberList.join('\n')}\n\n${GAME_ON_3}`);
 	}
 }
