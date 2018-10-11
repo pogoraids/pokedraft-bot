@@ -11,18 +11,13 @@ export class Channels {
 		
 		if (!guild) return;
 		
-		const everyone = this.getEveryone(guild);
-		
-		if (guild.channels.find('name', name)) {
+		if (guild.channels.find(channel => channel.name === name)) {
 			message.channel.send(name + ' category already existent.');
 		} else {
-			guild.createChannel(name, 'category', [{
-				id: APP_ID,
-				allowed: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY"]
-			}, {
-				id: everyone.id,
-				denied: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY"]
-			}]).then((category: Discord.CategoryChannel) => {
+			const categoryPermissions = this.getPermissions(guild, 'HIDDEN');
+
+			guild.createChannel(name, 'category', categoryPermissions)
+				.then((category: Discord.CategoryChannel) => {
 				message.channel.send('Category ' + name + ' created!');
 			})
 		}
@@ -35,13 +30,12 @@ export class Channels {
 		
 		const [category, division] = name.split(' ');
 		let catObject = null;
-		const everyone = this.getEveryone(guild);
 		
 		if (!category) {
 			message.channel.send('Category ' + category + ' not found');
 			return;
 		} else {
-			catObject = guild.channels.find('name', category);
+			catObject = guild.channels.find(channel => channel.name === category);
 		}
 
 		if (!division) {
@@ -49,7 +43,7 @@ export class Channels {
 			return;
 		}
 
-		if (guild.channels.find('name', division)) {
+		if (guild.channels.find(channel => channel.name === division)) {
 			message.channel.send(division + ' channel already existent.');
 		} else {
 			if (!catObject) {
@@ -61,16 +55,9 @@ export class Channels {
 				name: division,
 				permissions: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY", "EMBED_LINKS", 'ATTACH_FILES', 'ADD_REACTIONS']
 			}).then((role: Discord.Role) => {
-				guild.createChannel(division, 'text', [{
-					id: APP_ID,
-					allowed: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY"]
-				}, {
-					id: role.id,
-					allowed: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY", "EMBED_LINKS", 'ATTACH_FILES', 'ADD_REACTIONS']
-				}, {
-					id: everyone.id,
-					denied: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY"]
-				}]).then((divisionChannel) => {
+				let permissions = [...this.getPermissions(guild, 'DIVISION', role.id)];
+				
+				guild.createChannel(division, 'text', permissions).then((divisionChannel) => {
 					divisionChannel.setParent(catObject.id);
 
 					message.channel.send('Division ' + division + ' and role created!');
@@ -86,36 +73,63 @@ export class Channels {
 		if (!guild) { return; }
 
 		for (let guild of client.guilds.array()) {
-
-			if (!guild.channels.find("name","draftbot-admin")) {
+			if (!guild.channels.find(channel => channel.name === "draftbot-admin")) {
 				const role = guild.roles.find(role => role.hasPermission([Discord.Permissions.FLAGS.ADMINISTRATOR]));
-				const everyone = this.getEveryone(guild);
-				// ToDo: remove overwrite and add permissions in the same call
-				guild.createChannel('draftbot-admin', 'text').then((channel: Discord.GuildChannel) => {
-					channel.overwritePermissions(APP_ID, {
-						SEND_MESSAGES: true,
-						READ_MESSAGE_HISTORY: true,
-						READ_MESSAGES: true
-					});
-					channel.overwritePermissions(everyone.id, {
-						READ_MESSAGES: false,
-						SEND_MESSAGES: false,
-						READ_MESSAGE_HISTORY: false
-					});
-					channel.overwritePermissions(role.id, {
-						SEND_MESSAGES: true,
-						READ_MESSAGE_HISTORY: true,
-						READ_MESSAGES: true
-					});
+				const botChannelPermissions = [...this.getPermissions(guild, 'ADMIN', role.id)];
+
+				guild.createChannel('draftbot-admin', 'text', botChannelPermissions)
+					.then((channel: Discord.GuildChannel) => {					
+					console.log('Admin channel created for guild: ' + guild.name);
 				});
 			} else {
-				console.log('Admin channel already created');
+				console.log('Admin channel already created on ' + guild.name);
 			}
 		}
 	}
 
-	getEveryone(guild: Discord.Guild) {
-		return guild.roles.find(role => role.name === "@everyone");
+	getPermissions(guild: Discord.Guild, mode: 'HIDDEN' | 'ADMIN' | 'DIVISION', roleId?: string) {
+		let permissions = ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY"];
+		let permissionObj: { allowed?: string[], denied?: string[], id?: string} = {};
+		let permissionsArray = [];
+
+		if (mode === 'HIDDEN') {
+			permissionsArray.push({
+				id: guild.defaultRole.id,
+				denied: permissions
+			});
+			permissionsArray.push({
+				id: APP_ID,
+				allowed: permissions
+			});
+		} else if (mode === 'ADMIN') {
+			permissionsArray.push({
+				id: roleId,
+				allowed: permissions
+			});
+			permissionsArray.push({
+				id: guild.defaultRole.id,
+				denied: permissions
+			});
+			permissionsArray.push({
+				id: APP_ID,
+				allowed: permissions
+			});
+		} else if (mode === 'DIVISION') {
+			permissionsArray.push({
+				id: roleId,
+				allowed: permissions
+			});
+			permissionsArray.push({
+				id: guild.defaultRole.id,
+				denied: permissions
+			});
+			permissionsArray.push({
+				id: APP_ID,
+				allowed: permissions
+			});
+		}
+		
+		return permissionsArray;
 	}
 
 	assignToDivision(message: Discord.Message, options: string) {
@@ -126,15 +140,15 @@ export class Channels {
 		const [division, members] = options.split(' ');
 
 		if (!division) { return; }
-		else if (!guild.channels.find('name', division)) { 
+		else if (!guild.channels.find(channel => channel.name === division)) { 
 			message.channel.send(division + ' channel not found.');
 			return;
-		} else if (!guild.roles.find('name', division)) {
+		} else if (!guild.roles.find(channel => channel.name === division)) {
 			message.channel.send(division + ' role not found.');
 			return; 
 		}
 
-		const divisionRole = guild.roles.find('name', division);
+		const divisionRole = guild.roles.find(role => role.name === division);
 		const userList = [];
 		
 		if (message.mentions.members.array().length > 1) {
@@ -173,16 +187,16 @@ export class Channels {
 		const [division, members] = name.split(' ');
 
 		if (!division) { return; }
-		else if (!guild.channels.find('name', division)) { 
+		else if (!guild.channels.find(channel => channel.name === division)) { 
 			message.channel.send(division + ' channel not found.');
 			return;
-		} else if (!guild.roles.find('name', division)) {
+		} else if (!guild.roles.find(role => role.name === division)) {
 			message.channel.send(division + ' role not found.');
 			return; 
 		}
 
-		const divisionRole = guild.roles.find('name', division);
-		const divisionChannel = guild.channels.find('name', division);
+		const divisionRole = guild.roles.find(role => role.name === division);
+		const divisionChannel = guild.channels.find(channel => channel.name === division);
 		
 		const memberList = message.content.split('game-on ' + division + ' ')[1].split(' ');
 
@@ -199,12 +213,12 @@ export class Channels {
 			return; 
 		}
 		
-		if (!guild.roles.find('name', name.split(' ')[0])) {
+		if (!guild.roles.find(role => role.name === name.split(' ')[0])) {
 			message.channel.send(name + ' role not found.');
 			return; 
 		}
 
-		const divisionRole = guild.roles.find('name', name);
+		const divisionRole = guild.roles.find(role => role.name === name);
 
 		let cleared = 0;
 

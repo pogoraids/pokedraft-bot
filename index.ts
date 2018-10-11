@@ -14,7 +14,7 @@ export class Index {
 			new Channels().createBotChannel(client);
 		});
 
-		client.on('message', new Listener(client).parse);
+		client.on('message', new Listener().parse);
 
 		client.login(TOKEN.toString());
 	}

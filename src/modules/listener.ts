@@ -6,7 +6,7 @@ const ID = '498873323682529301';
 const commands = ['create-draft', 'create-division', 'assign-division', 'standings', 'help', 'game-on'];
 
 export class Listener {
-	constructor(private client: Discord.Client) {
+	constructor() {
 	}
 
 	parse(message: Discord.Message) {
@@ -27,7 +27,6 @@ export class Listener {
 			} else if (message.content.lastIndexOf('clear-division') !== -1) {
 				new Channels().clearDivision(message, message.content.split('clear-division ')[1]);
 			}
-			//message.reply('KHE?!');
 		}
 	}
 }
