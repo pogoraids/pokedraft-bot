@@ -1,6 +1,7 @@
 import * as Discord from 'discord.js';
 import {GAME_ON_1, GAME_ON_2, GAME_ON_3} from '../constants/messages';
 import {APP_ID} from '../constants/app';
+import {Configuration} from './configuration';
 
 export class Channels {	
 	constructor() {
@@ -67,22 +68,32 @@ export class Channels {
 		}
 	}
 
-	createBotChannel(client: Discord.Client) {
+	createBotChannel(client: Discord.Client, db: any) {
 		const guild = client.guilds.first();
 
 		if (!guild) { return; }
+		if (!db) { console.error('NO DB!'); return; }
 
 		for (let guild of client.guilds.array()) {
 			if (!guild.channels.find(channel => channel.name === "draftbot-admin")) {
 				const role = guild.roles.find(role => role.hasPermission([Discord.Permissions.FLAGS.ADMINISTRATOR]));
 				const botChannelPermissions = [...this.getPermissions(guild, 'ADMIN', role.id)];
-
+				
 				guild.createChannel('draftbot-admin', 'text', botChannelPermissions)
 					.then((channel: Discord.GuildChannel) => {					
 					console.log('Admin channel created for guild: ' + guild.name);
+					new Configuration(db).createGuildCatalog();
 				});
 			} else {
 				console.log('Admin channel already created on ' + guild.name);
+				
+				/*db.get('select * from GuildCatalog').then(v=>{
+					console.log(v);
+				})*/
+				
+				new Configuration().getGuildData(guild.id, guild.name)/*.then((a) => {
+					console.log('AAAA', a);
+				})*/
 			}
 		}
 	}
