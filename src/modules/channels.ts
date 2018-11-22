@@ -12,16 +12,39 @@ export class Channels {
 		
 		if (!guild) return;
 		
-		if (guild.channels.find(channel => channel.name === name)) {
-			message.channel.send(name + ' category already existent.');
-		} else {
-			this.getPermissions(guild, 'HIDDEN').then((categoryPermissions) => {
-				guild.createChannel(name, 'category', categoryPermissions)
-					.then((category: Discord.CategoryChannel) => {
-					message.channel.send('Category ' + name + ' created!');
-				});
-			});			
-		}
+		new Configuration().getGuildData(guild.id).then(configData => {
+			let authorizedRoles = configData.rolesAllowed.split(',');
+			let guildMember = guild.members.find(member => message.author.id == member.id);
+
+			if (!guildMember.roles.find(role => role.hasPermissions('ADMINISTRATOR'))) {
+				console.log('User doesn\'t have the ADMINISTRATOR role');
+
+				let found = false;
+				
+				for (const authRole of authorizedRoles) {
+					if (guildMember.roles.find(role => role.id === authRole)) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					message.channel.send('You cannot use `create-draft` here or you don\'t have enough permissions.');
+					return;
+				}
+			}
+			
+			if (guild.channels.find(channel => channel.name === name)) {
+				message.channel.send(name + ' category already existent.');
+			} else {
+				this.getPermissions(guild, 'HIDDEN').then((categoryPermissions) => {
+					guild.createChannel(name, 'category', categoryPermissions)
+						.then((category: Discord.CategoryChannel) => {
+						message.channel.send('Category ' + name + ' created!');
+					});
+				});			
+			}
+		});
 	}
 
 	createDivision(message: Discord.Message, name: string, members?: Discord.GuildMember[]) {
@@ -29,47 +52,69 @@ export class Channels {
 		
 		if (!guild) return;
 		
-		const [category, division] = name.split(' ');
-		let catObject = null;
-		
-		if (!category) {
-			message.channel.send('Category ' + category + ' not found');
-			return;
-		} else {
-			catObject = guild.channels.find(channel => channel.name === category);
-		}
+		new Configuration().getGuildData(guild.id).then(configData => {
+			let authorizedRoles = configData.rolesAllowed.split(',');
+			let guildMember = guild.members.find(member => message.author.id == member.id);
 
-		if (!division) {
-			message.channel.send('Both category and division names must be specified');
-			return;
-		}
+			if (!guildMember.roles.find(role => role.hasPermissions('ADMINISTRATOR'))) {
+				console.log('User doesn\'t have the ADMINISTRATOR role');
 
-		if (guild.channels.find(channel => channel.name === division)) {
-			message.channel.send(division + ' channel already existent.');
-		} else {
-			if (!catObject) {
+				let found = false;
+				
+				for (const authRole of authorizedRoles) {
+					if (guildMember.roles.find(role => role.id === authRole)) {
+						found = true;
+						break;
+					}
+				}
+
+				if (!found) {
+					message.channel.send('You cannot use `create-division` here or you don\'t have enough permissions.');
+					return;
+				}
+			}
+
+			const [category, division] = name.split(' ');
+			let catObject = null;
+			
+			if (!category) {
 				message.channel.send('Category ' + category + ' not found');
+				return;
+			} else {
+				catObject = guild.channels.find(channel => channel.name === category);
+			}
+
+			if (!division) {
+				message.channel.send('Both category and division names must be specified');
 				return;
 			}
 
-			guild.createRole({
-				name: division,
-				permissions: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY", "EMBED_LINKS", 'ATTACH_FILES', 'ADD_REACTIONS']
-			}).then((role: Discord.Role) => {
-				role.setMentionable(true);
+			if (guild.channels.find(channel => channel.name === division)) {
+				message.channel.send(division + ' channel already existent.');
+			} else {
+				if (!catObject) {
+					message.channel.send('Category ' + category + ' not found');
+					return;
+				}
 
-				this.getPermissions(guild, 'DIVISION', role.id).then(divisionPermissions => {
-					let permissions = [...divisionPermissions];
-					
-					guild.createChannel(division, 'text', permissions).then((divisionChannel) => {
-						divisionChannel.setParent(catObject.id);
-	
-						message.channel.send('Division ' + division + ' and role created!');
+				guild.createRole({
+					name: division,
+					permissions: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY", "EMBED_LINKS", 'ATTACH_FILES', 'ADD_REACTIONS']
+				}).then((role: Discord.Role) => {
+					role.setMentionable(true);
+
+					this.getPermissions(guild, 'DIVISION', role.id).then(divisionPermissions => {
+						let permissions = [...divisionPermissions];
+						
+						guild.createChannel(division, 'text', permissions).then((divisionChannel) => {
+							divisionChannel.setParent(catObject.id);
+		
+							message.channel.send('Division ' + division + ' and role created!');
+						});
 					});
-				})
-			})
-			
-		}
+				});
+			}
+		});
 	}
 
 	createBotChannel(client: Discord.Client, db: any) {
@@ -210,7 +255,7 @@ export class Channels {
 		if (!guild) { return; }
 		
 		const [division, members] = options.split(' ');
-
+		
 		if (!division) { return; }
 		else if (!guild.channels.find(channel => channel.name === division)) { 
 			message.channel.send(division + ' channel not found.');
