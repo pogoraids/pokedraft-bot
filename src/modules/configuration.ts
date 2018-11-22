@@ -26,12 +26,14 @@ export class Configuration {
 		});
 	}
 
-	getGuildData(id: string, name: string) {
+	getGuildData(id: string, name?: string) {
 		return this.dbInstance().then((db) => {
 			return db.get(`SELECT guildName, adminChannel, rolesAllowed, language FROM GuildCatalog WHERE guildId="${id}"`).then((row: any) => {
 				if (row) {
 					return row;
 				} else {
+					if (!name) { throw 'Missing Guild Name'; }
+					
 					this.registerGuild(id, name);
 				}
 			}).catch((err) => {
@@ -73,12 +75,13 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 		let [property, value, rest] = text.split(" ");
 
 		if (property === 'rolesAllowed') {
-			const rolesArray = value.split(',');
+			let newValue = text.split(' ').slice(1).join(' ');
+			const rolesArray = newValue.split(',');
 			const roleIds = [];
-
+			
 			if (rolesArray && rolesArray.length) {
-				for (const role in rolesArray) {
-					const serverRole = guild.roles.find(guildRole => guildRole.name == role);
+				for (const role of rolesArray) {
+					const serverRole = guild.roles.find(guildRole => guildRole.name == role);					
 					
 					if (serverRole) {
 						roleIds.push(serverRole.id);

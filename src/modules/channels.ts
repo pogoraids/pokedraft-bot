@@ -15,12 +15,12 @@ export class Channels {
 		if (guild.channels.find(channel => channel.name === name)) {
 			message.channel.send(name + ' category already existent.');
 		} else {
-			const categoryPermissions = this.getPermissions(guild, 'HIDDEN');
-
-			guild.createChannel(name, 'category', categoryPermissions)
-				.then((category: Discord.CategoryChannel) => {
-				message.channel.send('Category ' + name + ' created!');
-			})
+			this.getPermissions(guild, 'HIDDEN').then((categoryPermissions) => {
+				guild.createChannel(name, 'category', categoryPermissions)
+					.then((category: Discord.CategoryChannel) => {
+					message.channel.send('Category ' + name + ' created!');
+				});
+			});			
 		}
 	}
 
@@ -56,13 +56,17 @@ export class Channels {
 				name: division,
 				permissions: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY", "EMBED_LINKS", 'ATTACH_FILES', 'ADD_REACTIONS']
 			}).then((role: Discord.Role) => {
-				let permissions = [...this.getPermissions(guild, 'DIVISION', role.id)];
-				
-				guild.createChannel(division, 'text', permissions).then((divisionChannel) => {
-					divisionChannel.setParent(catObject.id);
+				role.setMentionable(true);
 
-					message.channel.send('Division ' + division + ' and role created!');
-				});
+				this.getPermissions(guild, 'DIVISION', role.id).then(divisionPermissions => {
+					let permissions = [...divisionPermissions];
+					
+					guild.createChannel(division, 'text', permissions).then((divisionChannel) => {
+						divisionChannel.setParent(catObject.id);
+	
+						message.channel.send('Division ' + division + ' and role created!');
+					});
+				})
 			})
 			
 		}
@@ -77,13 +81,17 @@ export class Channels {
 		for (let guild of client.guilds.array()) {
 			if (!guild.channels.find(channel => channel.name === "draftbot-admin")) {
 				const role = guild.roles.find(role => role.hasPermission([Discord.Permissions.FLAGS.ADMINISTRATOR]));
-				const botChannelPermissions = [...this.getPermissions(guild, 'ADMIN', role.id)];
+				this.getPermissions(guild, 'ADMIN', role.id).then(adminPermissions => {
+
+					const botChannelPermissions = [...adminPermissions];
+
+					guild.createChannel('draftbot-admin', 'text', botChannelPermissions)
+						.then((channel: Discord.GuildChannel) => {					
+						console.log('Admin channel created for guild: ' + guild.name);
+						new Configuration(db).createGuildCatalog();
+					});
+				})
 				
-				guild.createChannel('draftbot-admin', 'text', botChannelPermissions)
-					.then((channel: Discord.GuildChannel) => {					
-					console.log('Admin channel created for guild: ' + guild.name);
-					new Configuration(db).createGuildCatalog();
-				});
 			} else {
 				console.log('Admin channel already created on ' + guild.name);
 				
@@ -103,6 +111,59 @@ export class Channels {
 		let permissionObj: { allowed?: string[], denied?: string[], id?: string} = {};
 		let permissionsArray = [];
 
+		return new Configuration().getGuildData(guild.id).then((rowData) => {
+			if (rowData.rolesAllowed) {
+				rowData.rolesAllowed.split(',').forEach((configRole) => {
+					permissionsArray.push({
+						id: configRole,
+						allowed: [...permissions, 'ADD_REACTIONS']
+					});
+				});
+			}
+
+			if (mode === 'HIDDEN') {
+				permissionsArray.push({
+					id: guild.defaultRole.id,
+					denied: permissions
+				});
+				permissionsArray.push({
+					id: APP_ID,
+					allowed: permissions
+				});
+			} else if (mode === 'ADMIN') {
+				permissionsArray.push({
+					id: roleId,
+					allowed: permissions
+				});
+				permissionsArray.push({
+					id: guild.defaultRole.id,
+					denied: permissions
+				});
+				permissionsArray.push({
+					id: APP_ID,
+					allowed: permissions
+				});
+			} else if (mode === 'DIVISION') {
+				permissionsArray.push({
+					id: roleId,
+					allowed: permissions
+				});
+				permissionsArray.push({
+					id: guild.defaultRole.id,
+					denied: permissions
+				});
+				permissionsArray.push({
+					id: APP_ID,
+					allowed: permissions
+				});
+			}
+
+			return permissionsArray;
+		}).catch((error) => {
+			throw error;
+		});/*
+
+		// ToDo IMPROVE THIS
 		if (mode === 'HIDDEN') {
 			permissionsArray.push({
 				id: guild.defaultRole.id,
@@ -140,7 +201,7 @@ export class Channels {
 			});
 		}
 		
-		return permissionsArray;
+		return permissionsArray;*/
 	}
 
 	assignToDivision(message: Discord.Message, options: string) {
