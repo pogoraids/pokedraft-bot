@@ -206,47 +206,7 @@ export class Channels {
 			return permissionsArray;
 		}).catch((error) => {
 			throw error;
-		});/*
-
-		// ToDo IMPROVE THIS
-		if (mode === 'HIDDEN') {
-			permissionsArray.push({
-				id: guild.defaultRole.id,
-				denied: permissions
-			});
-			permissionsArray.push({
-				id: APP_ID,
-				allowed: permissions
-			});
-		} else if (mode === 'ADMIN') {
-			permissionsArray.push({
-				id: roleId,
-				allowed: permissions
-			});
-			permissionsArray.push({
-				id: guild.defaultRole.id,
-				denied: permissions
-			});
-			permissionsArray.push({
-				id: APP_ID,
-				allowed: permissions
-			});
-		} else if (mode === 'DIVISION') {
-			permissionsArray.push({
-				id: roleId,
-				allowed: permissions
-			});
-			permissionsArray.push({
-				id: guild.defaultRole.id,
-				denied: permissions
-			});
-			permissionsArray.push({
-				id: APP_ID,
-				allowed: permissions
-			});
-		}
-		
-		return permissionsArray;*/
+		});
 	}
 
 	assignToDivision(message: Discord.Message, options: string) {
