@@ -1,1 +1,2 @@
 export const CREATE_GUILD = 'CREATE TABLE IF NOT EXISTS GuildCatalog(guildId TEXT, guildName TEXT, adminChannel TEXT, rolesAllowed TEXT, language TEXT)';
+export const CREATE_DIVISION = 'CREATE TABLE IF NOT EXISTS DivisionCatalog(guildId INT, divisionId INT, divisionName TEXT, members TEXT, pickOrder TEXT)';

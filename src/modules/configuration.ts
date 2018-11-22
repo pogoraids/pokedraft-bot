@@ -1,6 +1,6 @@
 import * as sql from 'sqlite';
 import * as Discord from 'discord.js';
-import { CREATE_GUILD } from '../constants/dbCatalogs';
+import { CREATE_GUILD, CREATE_DIVISION } from '../constants/dbCatalogs';
 import { resolve, dirname } from 'path';
 
 export class Configuration {
@@ -33,7 +33,7 @@ export class Configuration {
 					return row;
 				} else {
 					if (!name) { throw 'Missing Guild Name'; }
-					
+
 					this.registerGuild(id, name);
 				}
 			}).catch((err) => {
@@ -103,6 +103,112 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 				console.log(row);
 				return row.language;
 			});
+		});
+	}
+
+	createDivisionCatalog() {
+		return this.db.run(CREATE_DIVISION).then(() => {
+			console.log('division table created');
+		}).catch((err) => {
+			console.log('CRITICAL ERROR', err);
+		});
+	}
+
+	getAllDivisionsFromGuild(id: string, name?: string) {
+		return new Promise((resolve, reject) => {
+			this.dbInstance().then((db) => {
+				let responses = [];
+				return db.all(`SELECT guildId, divisionName, members, pickOrder FROM DivisionCatalog WHERE guildId="${id}"`).then((rows: any) => {
+					if (rows) {
+						responses = rows;
+						resolve(responses);
+						return rows;
+					} else {
+						console.log(`Draft data not found on this server!`);
+						reject();
+					}
+				}).catch((err) => {
+					reject(err);
+				})
+			});
+		});
+	}
+
+	getDivisionData(id: string, divisionId?: string, name?: string) {
+		return this.dbInstance().then((db) => {
+			return db.get(`SELECT divisionName, members, pickOrder FROM DivisionCatalog WHERE guildId="${id}" AND (divisionId="${divisionId}" OR divisionName="${name}")`).then((row: any) => {
+				if (row) {
+					return row;
+				} else {
+					console.log(`Division ${name} not found!`);
+				}
+			}).catch((err) => {
+				console.log('ERROR GETTING', err);
+			})
+		});
+	}
+
+	setDivisionData(id: string, divisionId: string, propertyArray: string[], valueArray: string[]) {
+		return this.dbInstance().then((db) => {
+			if (propertyArray.length === valueArray.length) {
+				let increment = 0;
+				for (const property of propertyArray) {
+					const value = valueArray[increment];
+					
+					db.run(`INSERT OR REPLACE INTO DivisionCatalog (guildId, divisionId, ${property}) VALUES ("${id}", "${divisionId}", "${value}")`).then(() => {
+						console.log('Division data updated');
+					});
+
+					++increment;
+				}
+			}
+		});
+	}
+
+	divisionInfo(message: Discord.Message) {
+		const guild = message.guild;
+
+		if (!guild) { return; }
+
+		const [,,divisionName] = message.content.split(' ');
+
+		if (!divisionName) {
+			message.channel.send(`Division ${divisionName} is not on the current draft (or server)`);
+			return;
+		}
+
+		this.getDivisionData(guild.id, null, divisionName).then((rowValue) => {
+			message.channel.send(`
+The division **${rowValue.divisionName}** has the following:
+
+- **Members**: ${rowValue.members && rowValue.members.split(',').join(', ') || '_Still empty_'}
+- **Draft pick order**: ${rowValue.pickOrder && rowValue.pickOrder.split(',').join('\t\n ->') || '_Still empty_'}
+
+`);
+		});
+	}
+
+	getDraftDivisions(message: Discord.Message) {
+		const guild = message.guild;
+
+		if (!guild) { return; }
+
+		this.getAllDivisionsFromGuild(guild.id).then((data: any[]) => {
+			if (data) {
+				const draftData = [];
+				data.forEach(rowValue => {
+					draftData.push(`\tDivision **${rowValue.divisionName}**
+	===
+	**Members**: ${rowValue.members && rowValue.members.split(',').join(', ') || '_Still empty_'}
+	**Draft pick order**: ${rowValue.pickOrder && rowValue.pickOrder.split(',').join('\t\n ->') || '_Still empty_'}
+	`)
+				});
+
+				message.channel.send(`
+	The current draft for **${guild.name}** has the following divisions:
+
+${draftData.join("\n")}`);
+			}
 		});
 	}
 }

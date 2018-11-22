@@ -36,7 +36,12 @@ export class Listener {
 				new Configuration().getConfigData(message);
 			} else if (message.content.lastIndexOf('set-config') !== -1) {
 				new Configuration().setConfigData(message, message.content.split('set-config ')[1]);
+			} else if (message.content.lastIndexOf('division-info') !== -1) {
+				new Configuration().divisionInfo(message);
+			} else if (message.content.lastIndexOf('draft-info') !== -1) {
+				new Configuration().getDraftDivisions(message);
 			}
+
 		}
 	}
 }

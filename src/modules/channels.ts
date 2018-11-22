@@ -110,6 +110,14 @@ export class Channels {
 							divisionChannel.setParent(catObject.id);
 		
 							message.channel.send('Division ' + division + ' and role created!');
+
+							new Configuration().getAllDivisionsFromGuild(guild.id).then((data: any[]) => {
+								if (!data) {
+									new Configuration().setDivisionData(guild.id, '1', ['divisionName'], [division]);
+								} else {
+									new Configuration().setDivisionData(guild.id, "" + (data.length + 1), ['divisionName'], [division]);
+								}
+							})
 						});
 					});
 				});

@@ -21,6 +21,7 @@ export class Index {
 				// console.log(db);
 				// console.log('database created');
 				//new Configuration(db).createGuildCatalog();
+				// new Configuration(db).createDivisionCatalog();
 			})
 		});
 

@@ -16,7 +16,7 @@ export const GAME_ON_3 = 'Make your pick and tag the next person in the order, r
 
 export const EN = {
 	GREETING: "Bot is alive",
-	HELP: `PokeDraft-Bot by @enanox
+	HELP: `**PokeDraft-Bot** by @enanox
 
 Commands:
 
@@ -25,6 +25,8 @@ Commands:
 - **assign-division** \`<division>\` _[users]_: Assigns the [users] list (mentions or username#discriminator list) to the \`<division>\` division under the \`<catName>\` category.
 - **game-on** \`<division>\` _[users]_: Tags the \`<division>\` on their channel and posts the pick order.
 - **clear-division** \`<division>\`: Deletes the \`<division>\` role (but keeps the channel -for chat purposes-).
+- **draft-info**: Lists all the divisions created for the ongoing draft.
+- **division-info** \`<division>\`: Lists the \`<division>\` info for the ongoing draft.
 `,
 	GAME_ON_1: 'Draft starts ',
 	GAME_ON_2: 'The order is the following: ',
@@ -33,7 +35,7 @@ Commands:
 
 export const ES = {
 	GREETING: "Bot is alive",
-	HELP: `PokeDraft-Bot por @enanox
+	HELP: `**PokeDraft-Bot** por @enanox
 
 Comandos:
 
@@ -42,6 +44,8 @@ Comandos:
 - **assign-division** \`<division>\` _[usuarios]_: Asigna la lista de [usuarios] (lista de menciones o nombre#discriminador) a la división \`<division>\`.
 - **game-on** \`<division>\` _[users]_: Etiqueta a la \`<division>\` en su canal y publica el order de selección.
 - **clear-division** \`<division>\`: Elimina el rol \`<division>\` (pero mantiene el canal -por motivos de comunidad-).
+- **draft-info**: Detalla todas las divisiones creadas para el draft en curso.
+- **division-info** \`<division>\`: Detalla la información de la \`<division>\` para el draft en curso.
 `,
 	GAME_ON_1: 'Comienza el Draft ',
 	GAME_ON_2: 'El orden es el siguiente: ',
