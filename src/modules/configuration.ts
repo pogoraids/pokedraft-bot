@@ -70,7 +70,24 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 		const guild = message.guild;
 
 		if (!guild) { return; }
-		const [property, value, rest] = text.split(" ");
+		let [property, value, rest] = text.split(" ");
+
+		if (property === 'rolesAllowed') {
+			const rolesArray = value.split(',');
+			const roleIds = [];
+
+			if (rolesArray && rolesArray.length) {
+				for (const role in rolesArray) {
+					const serverRole = guild.roles.find(guildRole => guildRole.name == role);
+					
+					if (serverRole) {
+						roleIds.push(serverRole.id);
+					}
+				}
+
+				value = roleIds.join(',');
+			}
+		}
 
 		this.setGuildData(guild.id, property, value).then((rowValue) => {
 			message.channel.send(`This server ${guild.name} updated ${property} to ${value}`);
