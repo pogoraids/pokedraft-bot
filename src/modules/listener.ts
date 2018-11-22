@@ -11,7 +11,7 @@ export class Listener {
 
 	parse(message: Discord.Message) {
 		if (!message.guild) return;
-		const summoned: Discord.User = message.mentions && message.mentions.users && message.mentions.users.first();
+		const summoned: Discord.User = message.mentions && message.mentions.users && message.mentions.users.find(bot => bot.id == ID);
 		
 		if (!!summoned && summoned.id === ID || message.content.lastIndexOf('<@' + ID + '>') === 0) {
 			if (message.content.lastIndexOf('create-draft') !== -1) {
