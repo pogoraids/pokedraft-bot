@@ -142,6 +142,7 @@ export class Channels {
 						.then((channel: Discord.GuildChannel) => {					
 						console.log('Admin channel created for guild: ' + guild.name);
 						new Configuration(db).createGuildCatalog();
+						new Configuration(db).createDivisionCatalog();
 					});
 				})
 				
@@ -219,28 +220,30 @@ export class Channels {
 
 	assignToDivision(message: Discord.Message, options: string) {
 		const guild = message.guild;
+		const configADO = new Configuration();
 		
 		if (!guild) { return; }
 		
 		const [division, members] = options.split(' ');
 		
 		if (!division) { return; }
-		else if (!guild.channels.find(channel => channel.name === division)) { 
+		else if (!guild.channels.find(channel => channel.name.toLowerCase() === division.toLowerCase())) { 
 			message.channel.send(division + ' channel not found.');
 			return;
-		} else if (!guild.roles.find(channel => channel.name === division)) {
+		} else if (!guild.roles.find(channel => channel.name.toLowerCase() === division.toLowerCase())) {
 			message.channel.send(division + ' role not found.');
 			return; 
 		}
 
 		const divisionRole = guild.roles.find(role => role.name === division);
-		const userList = [];
+		const userList = [], userNameList = [];
 		
 		if (message.mentions.members.array().length > 1) {
 			message.mentions.members.array().forEach((member) => {
 				if (member.id != APP_ID) {
 					member.addRole(divisionRole);
 					userList.push(member.displayName);
+					userNameList.push(member.user.username + '#' + member.user.discriminator);
 				}
 			});
 		} else if (message.content.lastIndexOf("#") !== -1) {
@@ -252,6 +255,7 @@ export class Channels {
 					if (guildMember.user.username == member.split('#')[0] && guildMember.user.discriminator == member.split('#')[1]) {
 						guildMember.addRole(divisionRole);
 						userList.push(guildMember.displayName);
+						userNameList.push(guildMember.user.username + '#' + guildMember.user.discriminator);
 					}
 				}
 			}
@@ -259,6 +263,14 @@ export class Channels {
 		
 		if (userList.length > 0) {
 			message.channel.send('Users ' + userList.join(', ') + ' added to the ' + division + ' division!');
+			
+			configADO.getDivisionData(guild.id, null, division).then((existentDivision) => {
+				if (existentDivision) {
+					configADO.setDivisionData(guild.id, existentDivision.divisionId, ['members'], [userNameList.join(',')]);
+				} else {
+					console.error('Something happened');
+				}
+			});
 		} else {
 			message.channel.send('No user was assigned to the role/division');
 		}
@@ -266,26 +278,48 @@ export class Channels {
 
 	gameOn(message: Discord.Message, name: string) {
 		const guild = message.guild;
-		
+		const configADO = new Configuration();
+
 		if (!guild) { return; }
 
 		const [division, members] = name.split(' ');
 
 		if (!division) { return; }
-		else if (!guild.channels.find(channel => channel.name === division)) { 
+		else if (!guild.channels.find(channel => channel.name.toLowerCase() === division.toLowerCase())) { 
 			message.channel.send(division + ' channel not found.');
 			return;
-		} else if (!guild.roles.find(role => role.name === division)) {
+		} else if (!guild.roles.find(role => role.name.toLowerCase() === division.toLowerCase())) {
 			message.channel.send(division + ' role not found.');
 			return; 
 		}
 
-		const divisionRole = guild.roles.find(role => role.name === division);
-		const divisionChannel = guild.channels.find(channel => channel.name === division);
+		const divisionRole = guild.roles.find(role => role.name.toLowerCase() === division.toLowerCase());
+		const divisionChannel = guild.channels.find(channel => channel.name.toLowerCase() === division.toLowerCase());
 		
-		const memberList = message.content.split('game-on ' + division + ' ')[1].split(' ');
+		let memberList = [];
+		
+		if(message.content.split('game-on ' + division + ' ').length > 2) {
+			memberList = message.content.split('game-on ' + division + ' ')[1].split(' ');
+		}
 
-		(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${memberList.join('\n')}\n\n${GAME_ON_3}`);
+		if (memberList.length < 2) {
+			console.log('randomizing!')
+			configADO.getDivisionData(guild.id, null, division).then(existingDivision => {
+				if (existingDivision) {
+					memberList = existingDivision.members.split(',');					
+					console.log(memberList);
+					const shuffleArray = memberList.map((a) => [Math.random(),a]).sort((a,b) => a[0]-b[0]).map((a) => a[1]);
+					
+console.log(shuffleArray);
+					configADO.setDivisionData(guild.id, existingDivision.divisionId, ['pickOrder'], [...shuffleArray]).then(value => {
+						(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${memberList.join('\n')}\n\n${GAME_ON_3}`);
+					});
+				});
+
+		} else {
+			console.log('manual!');
+			(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${memberList.join('\n')}\n\n${GAME_ON_3}`);
+		}
 	}
 
 	clearDivision(message: Discord.Message, name: string) {

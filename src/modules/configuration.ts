@@ -136,7 +136,7 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 
 	getDivisionData(id: string, divisionId?: string, name?: string) {
 		return this.dbInstance().then((db) => {
-			return db.get(`SELECT divisionName, members, pickOrder FROM DivisionCatalog WHERE guildId="${id}" AND (divisionId="${divisionId}" OR divisionName="${name}")`).then((row: any) => {
+			return db.get(`SELECT divisionId, divisionName, members, pickOrder FROM DivisionCatalog WHERE guildId="${id}" AND (divisionId="${divisionId}" OR divisionName="${name}")`).then((row: any) => {
 				if (row) {
 					return row;
 				} else {
@@ -155,7 +155,9 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 				for (const property of propertyArray) {
 					const value = valueArray[increment];
 					
-					db.run(`INSERT OR REPLACE INTO DivisionCatalog (guildId, divisionId, ${property}) VALUES ("${id}", "${divisionId}", "${value}")`).then(() => {
+					db.run(`INSERT INTO DivisionCatalog (guildId, divisionId, ${property}) 
+							VALUES ("${id}", "${divisionId}", "${value}") 
+							ON CONFLICT (divisionId) DO UPDATE SET ${property}=excluded.${property}`).then((a) => {
 						console.log('Division data updated');
 					});
 
