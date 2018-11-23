@@ -12,7 +12,7 @@ Commands:
 
 export const GAME_ON_1 = 'Draft starts ';
 export const GAME_ON_2 = 'The order is the following: ';
-export const GAME_ON_3 = 'Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command `@pokedraft-bot division-info yourDivisionName`';
+export const GAME_ON_3 = 'Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command `@draft-bot division-info yourDivisionName`';
 
 export const EN = {
 	GREETING: "Bot is alive",
@@ -30,7 +30,7 @@ Commands:
 `,
 	GAME_ON_1: 'Draft starts ',
 	GAME_ON_2: 'The order is the following: ',
-	GAME_ON_3: 'Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command `@pokedraft-bot division-info yourDivisionName`'
+	GAME_ON_3: 'Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command `@draft-bot division-info yourDivisionName`'
 };
 
 export const ES = {
