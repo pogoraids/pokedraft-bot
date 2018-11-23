@@ -280,6 +280,19 @@ export class Channels {
 					}
 				}
 			}
+		} else {
+			const memberList = message.content.split('assign-division ' + division + ' ')[1].split(',');
+			const members = guild.members.array();
+			
+			for (let member of memberList) {
+				for (let guildMember of members) {
+					if (guildMember.user.username == member) {
+						guildMember.addRole(divisionRole);
+						userList.push(guildMember.displayName);
+						userNameList.push(guildMember.user.username + '#' + guildMember.user.discriminator);
+					}
+				}
+			}
 		}
 		
 		if (userList.length > 0) {
