@@ -13,16 +13,20 @@ export class Configuration {
 	}
 
 	createGuildCatalog() {
-		return this.db.run(CREATE_GUILD).then(() => {
-			console.log('table created');
-		}).catch((err) => {
-			console.log('CRITICAL ERROR', err);
+		return this.dbInstance().then((db) => {
+			return db.run(CREATE_GUILD).then(() => {
+				console.log('table created');
+			}).catch((err) => {
+				console.log('CRITICAL ERROR', err);
+			});
 		});
 	}
 
 	registerGuild(id: string, name: string) {
-		this.db.run('INSERT INTO GuildCatalog(guildId, guildName, adminChannel, rolesAllowed, language) VALUES (?, ?, ?, ?, ?)', [id, name, 'draftbot-admin', '', 'en']).then(() => {
-			console.log(name + ' guild registered');
+		return this.dbInstance().then((db) => {
+			return db.run('INSERT INTO GuildCatalog(guildId, guildName, adminChannel, rolesAllowed, language) VALUES (?, ?, ?, ?, ?)', [id, name, 'draftbot-admin', '', 'en']).then(() => {
+				console.log(name + ' guild registered');
+			});
 		});
 	}
 
@@ -56,6 +60,7 @@ export class Configuration {
 		if (!guild) { return; }
 
 		this.getGuildData(guild.id, guild.name).then((rowValue) => {
+			if (rowValue) {
 			message.channel.send(`
 This server ${rowValue.guildName} has the following configurations:
 
@@ -65,6 +70,9 @@ This server ${rowValue.guildName} has the following configurations:
 
 Set any configuration using \`set-config\` \`config\` \`newValue\`.
 `);
+			} else {
+				console.log(`Error getting config data`);
+			}
 		});
 	}
 
@@ -100,7 +108,6 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 	getLanguage(guildId: string) {
 		return this.dbInstance().then((db) => {
 			return db.get(`SELECT language FROM GuildCatalog WHERE guildId = "${guildId}"`).then((row) => {
-				console.log(row);
 				return row.language;
 			});
 		});
@@ -180,13 +187,17 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 		}
 
 		this.getDivisionData(guild.id, null, divisionName).then((rowValue) => {
-			message.channel.send(`
+			if (rowValue) {
+				message.channel.send(`
 The division **${rowValue.divisionName}** has the following:
 
 - **Members**: ${rowValue.members && rowValue.members.split(',').join(', ') || '_Still empty_'}
 - **Draft pick order**: ${rowValue.pickOrder && rowValue.pickOrder.split(',').join('\t\n ->') || '_Still empty_'}
 
 `);
+			} else {
+				message.channel.send(`No data found for **${divisionName}**`);
+			}
 		});
 	}
 
@@ -202,14 +213,14 @@ The division **${rowValue.divisionName}** has the following:
 					draftData.push(`\tDivision **${rowValue.divisionName}**
 	===
 	**Members**: ${rowValue.members && rowValue.members.split(',').join(', ') || '_Still empty_'}
-	**Draft pick order**: ${rowValue.pickOrder && rowValue.pickOrder.split(',').join('\t\n ->') || '_Still empty_'}
+	**Draft pick order**: ${rowValue.pickOrder && '\n\t' + rowValue.pickOrder.split(',').join('\n\t -> ') || '_Still empty_'}
 	`)
 				});
 
 				message.channel.send(`
 	The current draft for **${guild.name}** has the following divisions:
 
-${draftData.join("\n")}`);
+${draftData.length > 0 && draftData.join("\n") || 'No divisions yet'}`);
 			}
 		});
 	}

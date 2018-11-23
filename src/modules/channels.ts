@@ -13,37 +13,41 @@ export class Channels {
 		if (!guild) return;
 		
 		new Configuration().getGuildData(guild.id).then(configData => {
-			let authorizedRoles = configData.rolesAllowed.split(',');
-			let guildMember = guild.members.find(member => message.author.id == member.id);
+			if (configData) {
+				let authorizedRoles = configData.rolesAllowed.split(',');
+				let guildMember = guild.members.find(member => message.author.id == member.id);
 
-			if (!guildMember.roles.find(role => role.hasPermissions('ADMINISTRATOR'))) {
-				console.log('User doesn\'t have the ADMINISTRATOR role');
+				if (!guildMember.roles.find(role => role.hasPermissions('ADMINISTRATOR'))) {
+					console.log('User doesn\'t have the ADMINISTRATOR role');
 
-				let found = false;
-				
-				for (const authRole of authorizedRoles) {
-					if (guildMember.roles.find(role => role.id === authRole)) {
-						found = true;
-						break;
+					let found = false;
+					
+					for (const authRole of authorizedRoles) {
+						if (guildMember.roles.find(role => role.id === authRole)) {
+							found = true;
+							break;
+						}
+					}
+
+					if (!found) {
+						message.channel.send('You cannot use `create-draft` here or you don\'t have enough permissions.');
+						return;
 					}
 				}
-
-				if (!found) {
-					message.channel.send('You cannot use `create-draft` here or you don\'t have enough permissions.');
-					return;
+				
+				if (guild.channels.find(channel => channel.name === name)) {
+					message.channel.send(name + ' category already existent.');
+				} else {
+					this.getPermissions(guild, 'HIDDEN').then((categoryPermissions) => {
+						guild.createChannel(name, 'category', categoryPermissions)
+							.then((category: Discord.CategoryChannel) => {
+							message.channel.send('Category ' + name + ' created!');
+						});
+					});			
 				}
-			}
-			
-			if (guild.channels.find(channel => channel.name === name)) {
-				message.channel.send(name + ' category already existent.');
 			} else {
-				this.getPermissions(guild, 'HIDDEN').then((categoryPermissions) => {
-					guild.createChannel(name, 'category', categoryPermissions)
-						.then((category: Discord.CategoryChannel) => {
-						message.channel.send('Category ' + name + ' created!');
-					});
-				});			
-			}
+				message.channel.send(`No server config established (namely rolesAllowed). Please do so with set-config`);
+			} 
 		});
 	}
 
@@ -293,32 +297,55 @@ export class Channels {
 			return; 
 		}
 
+		const adminChannel = guild.channels.find(channel => channel.name === 'draftbot-admin');
+		
+		if (adminChannel && adminChannel.id != message.channel.id) {
+			message.channel.send('You cannot use the command `game-on` here.');
+			return;
+		}
+
 		const divisionRole = guild.roles.find(role => role.name.toLowerCase() === division.toLowerCase());
 		const divisionChannel = guild.channels.find(channel => channel.name.toLowerCase() === division.toLowerCase());
 		
 		let memberList = [];
 		
-		if(message.content.split('game-on ' + division + ' ').length > 2) {
+		if(message.content.split('game-on ' + division + ' ').length >= 2) {
 			memberList = message.content.split('game-on ' + division + ' ')[1].split(' ');
 		}
 
 		if (memberList.length < 2) {
-			console.log('randomizing!')
 			configADO.getDivisionData(guild.id, null, division).then(existingDivision => {
 				if (existingDivision) {
 					memberList = existingDivision.members.split(',');					
-					console.log(memberList);
-					const shuffleArray = memberList.map((a) => [Math.random(),a]).sort((a,b) => a[0]-b[0]).map((a) => a[1]);
 					
-console.log(shuffleArray);
-					configADO.setDivisionData(guild.id, existingDivision.divisionId, ['pickOrder'], [...shuffleArray]).then(value => {
+					const shuffleArray = memberList.map((a) => [Math.random(),a]).sort((a,b) => a[0]-b[0]).map((a) => a[1]);
+					let userNames = memberList;
+					
+					configADO.setDivisionData(guild.id, existingDivision.divisionId, ['pickOrder'], [shuffleArray.join(',')]).then(value => {
+						userNames = [];
+
+						shuffleArray.forEach(shuffled => {
+							let [username, disc] = shuffled.split('#');
+
+							let taggeableUser = guild.members.find(member => member.user.username == username && member.user.discriminator == disc);
+							
+							if (taggeableUser && taggeableUser.user.id) {
+								userNames.push(taggeableUser.user);
+							}
+						});
+						
+						(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${userNames.join('\n')}\n\n${GAME_ON_3}`);
+					});
+				}
+			});
+		} else {
+			configADO.getDivisionData(guild.id, null, division).then(existingDivision => {
+				if (existingDivision) {
+					configADO.setDivisionData(guild.id, existingDivision.divisionId, ['pickOrder'], [memberList.join(',')]).then(value => {
 						(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${memberList.join('\n')}\n\n${GAME_ON_3}`);
 					});
-				});
-
-		} else {
-			console.log('manual!');
-			(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${memberList.join('\n')}\n\n${GAME_ON_3}`);
+				}
+			});
 		}
 	}
 
