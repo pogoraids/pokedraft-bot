@@ -57,74 +57,78 @@ export class Channels {
 		if (!guild) return;
 		
 		new Configuration().getGuildData(guild.id).then(configData => {
-			let authorizedRoles = configData.rolesAllowed.split(',');
-			let guildMember = guild.members.find(member => message.author.id == member.id);
+			if (configData) {
+				let authorizedRoles = configData.rolesAllowed.split(',');
+				let guildMember = guild.members.find(member => message.author.id == member.id);
 
-			if (!guildMember.roles.find(role => role.hasPermissions('ADMINISTRATOR'))) {
-				console.log('User doesn\'t have the ADMINISTRATOR role');
+				if (!guildMember.roles.find(role => role.hasPermissions('ADMINISTRATOR'))) {
+					console.log('User doesn\'t have the ADMINISTRATOR role');
 
-				let found = false;
-				
-				for (const authRole of authorizedRoles) {
-					if (guildMember.roles.find(role => role.id === authRole)) {
-						found = true;
-						break;
+					let found = false;
+					
+					for (const authRole of authorizedRoles) {
+						if (guildMember.roles.find(role => role.id === authRole)) {
+							found = true;
+							break;
+						}
+					}
+
+					if (!found) {
+						message.channel.send('You cannot use `create-division` here or you don\'t have enough permissions.');
+						return;
 					}
 				}
 
-				if (!found) {
-					message.channel.send('You cannot use `create-division` here or you don\'t have enough permissions.');
-					return;
-				}
-			}
-
-			const [category, division] = name.split(' ');
-			let catObject = null;
-			
-			if (!category) {
-				message.channel.send('Category ' + category + ' not found');
-				return;
-			} else {
-				catObject = guild.channels.find(channel => channel.name === category);
-			}
-
-			if (!division) {
-				message.channel.send('Both category and division names must be specified');
-				return;
-			}
-
-			if (guild.channels.find(channel => channel.name === division)) {
-				message.channel.send(division + ' channel already existent.');
-			} else {
-				if (!catObject) {
+				const [category, division] = name.split(' ');
+				let catObject = null;
+				
+				if (!category) {
 					message.channel.send('Category ' + category + ' not found');
 					return;
+				} else {
+					catObject = guild.channels.find(channel => channel.name === category);
 				}
 
-				guild.createRole({
-					name: division,
-					permissions: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY", "EMBED_LINKS", 'ATTACH_FILES', 'ADD_REACTIONS']
-				}).then((role: Discord.Role) => {
-					role.setMentionable(true);
+				if (!division) {
+					message.channel.send('Both category and division names must be specified');
+					return;
+				}
 
-					this.getPermissions(guild, 'DIVISION', role.id).then(divisionPermissions => {
-						let permissions = [...divisionPermissions];
-						
-						guild.createChannel(division, 'text', permissions).then((divisionChannel) => {
-							divisionChannel.setParent(catObject.id);
-		
-							message.channel.send('Division ' + division + ' and role created!');
+				if (guild.channels.find(channel => channel.name === division)) {
+					message.channel.send(division + ' channel already existent.');
+				} else {
+					if (!catObject) {
+						message.channel.send('Category ' + category + ' not found');
+						return;
+					}
 
-							new Configuration().getAllDivisionsFromGuild(guild.id).then((data: any[]) => {
-								if (!data) {
-									new Configuration().setDivisionData(guild.id, '1', ['divisionName'], [division]);
-								} else {
-									new Configuration().setDivisionData(guild.id, "" + (data.length + 1), ['divisionName'], [division]);
-								}
-							})
+					guild.createRole({
+						name: division,
+						permissions: ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY", "EMBED_LINKS", 'ATTACH_FILES', 'ADD_REACTIONS']
+					}).then((role: Discord.Role) => {
+						role.setMentionable(true);
+
+						this.getPermissions(guild, 'DIVISION', role.id).then(divisionPermissions => {
+							let permissions = [...divisionPermissions];
+							
+							guild.createChannel(division, 'text', permissions).then((divisionChannel) => {
+								divisionChannel.setParent(catObject.id);
+			
+								message.channel.send('Division ' + division + ' and role created!');
+
+								new Configuration().getAllDivisionsFromGuild(guild.id).then((data: any[]) => {
+									if (!data) {
+										new Configuration().setDivisionData(guild.id, '1', ['divisionName'], [division]);
+									} else {
+										new Configuration().setDivisionData(guild.id, "" + (data.length + 1), ['divisionName'], [division]);
+									}
+								})
+							});
 						});
 					});
-				});
+				}
+			} else {
+				console.log('Error getting data');
 			}
 		});
 	}
@@ -138,9 +142,22 @@ export class Channels {
 		for (let guild of client.guilds.array()) {
 			if (!guild.channels.find(channel => channel.name === "draftbot-admin")) {
 				const role = guild.roles.find(role => role.hasPermission([Discord.Permissions.FLAGS.ADMINISTRATOR]));
-				this.getPermissions(guild, 'ADMIN', role.id).then(adminPermissions => {
-
-					const botChannelPermissions = [...adminPermissions];
+				//this.getPermissions(guild, 'ADMIN', role.id).then(adminPermissions => {
+					const permissionsArray = [];
+					const generalPermissions = ['SEND_MESSAGES','READ_MESSAGES', "READ_MESSAGE_HISTORY"];
+					permissionsArray.push({
+						id: role.id,
+						allowed: generalPermissions
+					});
+					permissionsArray.push({
+						id: guild.defaultRole.id,
+						denied: generalPermissions
+					});
+					permissionsArray.push({
+						id: APP_ID,
+						allowed: generalPermissions
+					});
+					const botChannelPermissions = [...permissionsArray];
 
 					guild.createChannel('draftbot-admin', 'text', botChannelPermissions)
 						.then((channel: Discord.GuildChannel) => {					
@@ -148,7 +165,7 @@ export class Channels {
 						new Configuration(db).createGuildCatalog();
 						new Configuration(db).createDivisionCatalog();
 					});
-				})
+				//})
 				
 			} else {
 				console.log('Admin channel already created on ' + guild.name);
@@ -170,7 +187,7 @@ export class Channels {
 		let permissionsArray = [];
 
 		return new Configuration().getGuildData(guild.id).then((rowData) => {
-			if (rowData.rolesAllowed) {
+			if (rowData && rowData.rolesAllowed) {
 				rowData.rolesAllowed.split(',').forEach((configRole) => {
 					permissionsArray.push({
 						id: configRole,
