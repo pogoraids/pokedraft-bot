@@ -1,6 +1,6 @@
 {
   "name": "pokedraft-bot",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "PokeDraft utility bot",
   "main": "index.js",
   "scripts": {
