@@ -2,7 +2,8 @@ import * as sql from 'sqlite';
 import * as Discord from 'discord.js';
 import { CREATE_GUILD, CREATE_DIVISION } from '../constants/dbCatalogs';
 import { resolve, dirname } from 'path';
-
+import { Helpers } from '../utils/helpers';
+import * as L10n from '../constants/messages';
 export class Configuration {
 	constructor(private db?: sql.Database) {}
 
@@ -174,6 +175,15 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 		});
 	}
 
+	dropDivisionData(id: string, divisionId?: string, name?: string) {
+		return this.dbInstance().then((db) => {			
+			db.run(`DELETE FROM DivisionCatalog WHERE guildId="${id}" AND divisionId="${divisionId}"`)
+			  .then((a) => {
+				console.log('Division data deleted');
+			});
+		});
+	}
+
 	divisionInfo(message: Discord.Message) {
 		const guild = message.guild;
 
@@ -235,5 +245,44 @@ The division **${rowValue.divisionName}** has the following:
 				}
 			}
 		});
+	}
+
+	// ToDo: refactor to a upper module apart from the ADO
+	dropDivision(message: Discord.Message, args: string) {
+		const guild = message.guild;
+
+		if (!guild) { return; }
+
+		const [,,divisionName] = message.content.split(' ');
+
+		Helpers.isAdminChannel(message).then(isIt => {
+			if (!!isIt && !!isIt.result) {
+				if (!divisionName) {
+					message.react('👎');
+					message.channel.send(L10n[isIt.language].ERRORS.DROP_DIVISION_NOT_FOUND.replace('%1', divisionName));
+					return;
+				}
+		
+				this.getDivisionData(guild.id, null, divisionName).then((rowValue) => {
+					if (rowValue) {
+						this.dropDivisionData(guild.id, rowValue.divisionId).then((err) => {
+							message.react('👍');
+							message.channel.send(L10n[isIt.language].DROP_DIVISION_ANSWER.replace('%1', rowValue.divisionName));				
+						});
+					} else {
+						message.react('👎');
+						message.channel.send(L10n[isIt.language].ERRORS.DROP_DIVISION_NO_DATA.replace('%1', divisionName));
+					}
+				});
+			} else {
+				message.react('👎');
+				
+				if (!!isIt) {
+					message.channel.send(L10n[isIt.language].ERRORS.DROP_DIVISION_NOT_ALLOWED);
+				} else {
+					message.channel.send(L10n.EN.ERRORS.DROP_DIVISION_NOT_ALLOWED);
+				}
+			}		
+		});		
 	}
 }

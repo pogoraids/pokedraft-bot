@@ -40,8 +40,9 @@ export class Listener {
 				new Configuration().divisionInfo(message);
 			} else if (message.content.lastIndexOf('draft-info') !== -1) {
 				new Configuration().getDraftDivisions(message);
+			} else if (message.content.lastIndexOf('drop-division') !== -1) {
+				new Configuration().dropDivision(message, message.content.split('drop-division ')[1]);
 			}
-
 		}
 	}
 }

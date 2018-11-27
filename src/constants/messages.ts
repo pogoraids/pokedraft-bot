@@ -23,8 +23,12 @@ Commands:
 		GAME_ON_EMPTY_DIVISION: 'This division have no members assigned. Please run `assign-division` first.',
 		GAME_ON_MISSING_PARAMETERS: 'You must specify the division.',
 		DIVISION_NOT_FOUND: '%1 division not found!',
-		ROLE_NOT_FOUND: '%1 role not found!'
-	}
+		ROLE_NOT_FOUND: '%1 role not found!',
+		DROP_DIVISION_NOT_FOUND: 'Division **%1** is not on the current draft (or server)!',
+		DROP_DIVISION_NO_DATA: 'No data found for division **%1**',
+		DROP_DIVISION_NOT_ALLOWED: 'You cannot use the command `drop-division` here'
+	},
+	DROP_DIVISION_ANSWER: 'The division **%1** has been removed from the current Draft.'
 };
 
 export const ES = {
@@ -50,6 +54,10 @@ Comandos:
 		GAME_ON_EMPTY_DIVISION: 'Esta división no tiene miembros asignados. Por favor corra `assign-division` primero.',
 		GAME_ON_MISSING_PARAMETERS: 'Debes especificar la división.',
 		DIVISION_NOT_FOUND: 'División %1 no encontrada!',
-		ROLE_NOT_FOUND: 'Rol %1 no encontrado!'
-	}
+		ROLE_NOT_FOUND: 'Rol %1 no encontrado!',
+		DROP_DIVISION_NOT_FOUND: 'La división **%1** no existe en el draft actual (o servidor)!',
+		DROP_DIVISION_NO_DATA: 'No hay datos para la división **%1**',
+		DROP_DIVISION_NOT_ALLOWED: 'No puedes usar el comando `drop-division` aquí.'
+	},
+	DROP_DIVISION_ANSWER: 'La división **%1** ha sido removida del Draft en curso.'
 }
