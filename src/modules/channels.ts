@@ -1,7 +1,8 @@
 import * as Discord from 'discord.js';
-import {GAME_ON_1, GAME_ON_2, GAME_ON_3} from '../constants/messages';
 import {APP_ID} from '../constants/app';
 import {Configuration} from './configuration';
+import {Helpers} from '../utils/helpers';
+import * as L10n from '../constants/messages';
 
 export class Channels {	
 	constructor() {
@@ -310,73 +311,99 @@ export class Channels {
 		}
 	}
 
-	gameOn(message: Discord.Message, name: string) {
+	gameOn(message: Discord.Message, args: string) {
 		const guild = message.guild;
 		const configADO = new Configuration();
 
 		if (!guild) { return; }
-
-		const [division, members] = name.split(' ');
-
-		if (!division) { return; }
-		else if (!guild.channels.find(channel => channel.name.toLowerCase() === division.toLowerCase())) { 
-			message.channel.send(division + ' channel not found.');
-			return;
-		} else if (!guild.roles.find(role => role.name.toLowerCase() === division.toLowerCase())) {
-			message.channel.send(division + ' role not found.');
-			return; 
-		}
-
-		const adminChannel = guild.channels.find(channel => channel.name === 'draftbot-admin');
 		
-		if (adminChannel && adminChannel.id != message.channel.id) {
-			message.channel.send('You cannot use the command `game-on` here.');
-			return;
-		}
-
-		const divisionRole = guild.roles.find(role => role.name.toLowerCase() === division.toLowerCase());
-		const divisionChannel = guild.channels.find(channel => channel.name.toLowerCase() === division.toLowerCase());
+		Helpers.isAdminChannel(message).then(isIt => {
+			if (!!isIt && !!isIt.result) {
+				if (!args) {
+					message.react('👎');
+					message.channel.send(L10n[isIt.language].ERRORS.GAME_ON_MISSING_PARAMETERS);
+					return;
+				}
 		
-		let memberList = [];
+				const [division, members] = args.split(' ');
 		
-		if(message.content.split('game-on ' + division + ' ').length >= 2) {
-			memberList = message.content.split('game-on ' + division + ' ')[1].split(' ');
-		}
+				if (!division) { return; }
+				else if (!guild.channels.find(channel => channel.name.toLowerCase() === division.toLowerCase())) { 
+					message.react('👎');
+					message.channel.send(L10n[isIt.language].ERRORS.DIVISION_NOT_FOUND.replace('%1', division));
+					return;
+				} else if (!guild.roles.find(role => role.name.toLowerCase() === division.toLowerCase())) {
+					message.react('👎');
+					message.channel.send(L10n[isIt.language].ERRORS.DIVISION_NOT_FOUND.replace('%1', division));
+					return; 
+				}
 
-		if (memberList.length < 2) {
-			configADO.getDivisionData(guild.id, null, division).then(existingDivision => {
-				if (existingDivision) {
-					memberList = existingDivision.members.split(',');					
-					
-					const shuffleArray = memberList.map((a) => [Math.random(),a]).sort((a,b) => a[0]-b[0]).map((a) => a[1]);
-					let userNames = memberList;
-					
-					configADO.setDivisionData(guild.id, existingDivision.divisionId, ['pickOrder'], [shuffleArray.join(',')]).then(value => {
-						userNames = [];
+				const divisionRole = guild.roles.find(role => role.name.toLowerCase() === division.toLowerCase());
+				const divisionChannel = guild.channels.find(channel => channel.name.toLowerCase() === division.toLowerCase());
+				
+				let memberList = [];
+				
+				if(message.content.split('game-on ' + division + ' ').length >= 2) {
+					memberList = message.content.split('game-on ' + division + ' ')[1] && message.content.split('game-on ' + division + ' ')[1].split(' ');
+				}
 
-						shuffleArray.forEach(shuffled => {
-							let [username, disc] = shuffled.split('#');
-
-							let taggeableUser = guild.members.find(member => member.user.username == username && member.user.discriminator == disc);
+				if (memberList.length < 2) {
+					configADO.getDivisionData(guild.id, null, division).then(existingDivision => {
+						if (existingDivision) {
+							memberList = existingDivision.members && existingDivision.members.split(',');					
 							
-							if (taggeableUser && taggeableUser.user.id) {
-								userNames.push(taggeableUser.user);
+							if (!memberList) {
+								message.react('👎');
+								message.channel.send(L10n[isIt.language].ERRORS.GAME_ON_EMPTY_DIVISION)
+								return;
 							}
-						});
-						
-						(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${userNames.join('\n')}\n\n${GAME_ON_3}`);
+
+							const shuffleArray = memberList.map((a) => [Math.random(),a]).sort((a,b) => a[0]-b[0]).map((a) => a[1]);
+							let userNames = memberList;
+							
+							configADO.setDivisionData(guild.id, existingDivision.divisionId, ['pickOrder'], [shuffleArray.join(',')]).then(value => {
+								userNames = [];
+
+								shuffleArray.forEach(shuffled => {
+									let [username, disc] = shuffled.split('#');
+
+									let taggeableUser = guild.members.find(member => member.user.username == username && member.user.discriminator == disc);
+									
+									if (taggeableUser && taggeableUser.user.id) {
+										userNames.push(taggeableUser.user);
+									}
+								});
+								
+								const answer = `${L10n[isIt.language].GAME_ON_1}<@&${divisionRole.id}>\n\n${L10n[isIt.language].GAME_ON_2}\n\n${userNames.join('\n')}\n\n${L10n[isIt.language].GAME_ON_3}`;
+
+								message.react('👍');
+								(<Discord.TextChannel>divisionChannel).send(answer);
+							});
+						}
+					});
+				} else {
+					configADO.getDivisionData(guild.id, null, division).then(existingDivision => {
+						if (existingDivision) {
+							configADO.setDivisionData(guild.id, existingDivision.divisionId, ['pickOrder'], [memberList.join(',')]).then(value => {
+								const answer = `${L10n[isIt.language].GAME_ON_1}<@&${divisionRole.id}>\n\n${L10n[isIt.language].GAME_ON_2}\n\n${memberList.join('\n')}\n\n${L10n[isIt.language].GAME_ON_3}`;
+								
+								message.react('👍');
+								(<Discord.TextChannel>divisionChannel).send(answer);
+							});
+						}
 					});
 				}
-			});
-		} else {
-			configADO.getDivisionData(guild.id, null, division).then(existingDivision => {
-				if (existingDivision) {
-					configADO.setDivisionData(guild.id, existingDivision.divisionId, ['pickOrder'], [memberList.join(',')]).then(value => {
-						(<Discord.TextChannel>divisionChannel).send(`${GAME_ON_1}<@&${divisionRole.id}>\n\n${GAME_ON_2}\n\n${memberList.join('\n')}\n\n${GAME_ON_3}`);
-					});
+			} else {
+				message.react('👎');
+				
+				if (!!isIt) {
+					message.channel.send(L10n[isIt.language].ERRORS.GAME_ON_NOT_ALLOWED);
+				} else {
+					message.channel.send(L10n.EN.ERRORS.GAME_ON_NOT_ALLOWED);
 				}
-			});
-		}
+				return;
+			}
+		});
 	}
 
 	clearDivision(message: Discord.Message, name: string) {

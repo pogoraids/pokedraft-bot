@@ -1,18 +1,4 @@
 export const GREETING = "Bot is alive";
-export const HELP = `PokeDraft-Bot by @enanox
-
-Commands:
-
-- **create-draft** \`<name>\`: Creates a new \`<name>\` category
-- **create-division** \`<catName>\` \`<name>\`: Creates a new \`<name>\` division below the \`<catName>\` category, along with a <name> role.
-- **assign-division** \`<division>\` _[users]_: Assigns the [users] list (mentions or username#discriminator list) to the \`<division>\` division under the \`<catName>\` category.
-- **game-on** \`<division>\` _[users]_: Tags the \`<division>\` on their channel and posts the pick order.
-- **clear-division** \`<division>\`: Deletes the \`<division>\` role (but keeps the channel -for chat purposes-).
-`;
-
-export const GAME_ON_1 = 'Draft starts ';
-export const GAME_ON_2 = 'The order is the following: ';
-export const GAME_ON_3 = 'Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command `@draft-bot division-info yourDivisionName`';
 
 export const EN = {
 	GREETING: "Bot is alive",
@@ -30,7 +16,15 @@ Commands:
 `,
 	GAME_ON_1: 'Draft starts ',
 	GAME_ON_2: 'The order is the following: ',
-	GAME_ON_3: 'Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command `@draft-bot division-info yourDivisionName`'
+	GAME_ON_3: 'Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command like this: `@draft-bot division-info yourDivisionName`',
+	ERRORS: {
+		MISSING_GUILD_CONFIG: 'Missing guild configuration, due to not existing or not having being set.',
+		GAME_ON_NOT_ALLOWED: 'You cannot use the command `game-on` here.',
+		GAME_ON_EMPTY_DIVISION: 'This division have no members assigned. Please run `assign-division` first.',
+		GAME_ON_MISSING_PARAMETERS: 'You must specify the division.',
+		DIVISION_NOT_FOUND: '%1 division not found!',
+		ROLE_NOT_FOUND: '%1 role not found!'
+	}
 };
 
 export const ES = {
@@ -49,5 +43,13 @@ Comandos:
 `,
 	GAME_ON_1: 'Comienza el Draft ',
 	GAME_ON_2: 'El orden es el siguiente: ',
-	GAME_ON_3: 'Haz tu elección y etiqueta a la siguiente persona en el orden, recuerda: el último elige dos y revierte el orden de elección.'
+	GAME_ON_3: 'Haz tu elección y etiqueta a la siguiente persona en el orden, recuerda: el último elige dos y revierte el orden de elección.\n\nPuedes consultar la información de la división con una etiqueta y el comando así: `@draft-bot division-info nombreDivision`',
+	ERRORS: {
+		MISSING_GUILD_CONFIG: 'Falta la configuración del servidor, ya sea porque no existe o no se ha registrado.',
+		GAME_ON_NOT_ALLOWED: 'No puedes usar el comando `game-on` aquí.',
+		GAME_ON_EMPTY_DIVISION: 'Esta división no tiene miembros asignados. Por favor corra `assign-division` primero.',
+		GAME_ON_MISSING_PARAMETERS: 'Debes especificar la división.',
+		DIVISION_NOT_FOUND: 'División %1 no encontrada!',
+		ROLE_NOT_FOUND: 'Rol %1 no encontrado!'
+	}
 }
