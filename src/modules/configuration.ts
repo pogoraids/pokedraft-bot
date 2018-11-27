@@ -211,16 +211,28 @@ The division **${rowValue.divisionName}** has the following:
 				const draftData = [];
 				data.forEach(rowValue => {
 					draftData.push(`\tDivision **${rowValue.divisionName}**
-	===
+**===**
 	**Members**: ${rowValue.members && rowValue.members.split(',').join(', ') || '_Still empty_'}
-	**Draft pick order**: ${rowValue.pickOrder && '\n\t' + rowValue.pickOrder.split(',').join('\n\t -> ') || '_Still empty_'}
-	`)
+	**Draft pick order**:  ${rowValue.pickOrder && '\n\t ->' + rowValue.pickOrder.split(',').join('\n\t -> ') || '_Still empty_'}\n`);
 				});
 
-				message.channel.send(`
-	The current draft for **${guild.name}** has the following divisions:
+				if (draftData.length === 0) {
+					message.channel.send(`
+	The current draft for **${guild.name}** has the following divisions: _No divisions yet_
+	`);
+				} else {
+					message.channel.send(`
+		The current draft for **${guild.name}** has the following divisions:
+		`);
 
-${draftData.length > 0 && draftData.join("\n") || 'No divisions yet'}`);
+					if (draftData.join('\n').length > 2000) {
+						draftData.forEach(division => {
+							message.channel.send(division);
+						});
+					} else {
+						message.channel.send(draftData.join('\n'));
+					}
+				}
 			}
 		});
 	}
