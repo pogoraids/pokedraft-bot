@@ -42,6 +42,8 @@ export class Listener {
 				new Configuration().getDraftDivisions(message);
 			} else if (message.content.lastIndexOf('drop-division') !== -1) {
 				new Configuration().dropDivision(message, message.content.split('drop-division ')[1]);
+			} else if (message.content.lastIndexOf('standings') !== -1 || message.content.lastIndexOf('scores') !== -1) {
+				new Configuration().getMasterStandings(message);
 			}
 		}
 	}

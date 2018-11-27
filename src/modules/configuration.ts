@@ -33,7 +33,7 @@ export class Configuration {
 
 	getGuildData(id: string, name?: string) {
 		return this.dbInstance().then((db) => {
-			return db.get(`SELECT guildName, adminChannel, rolesAllowed, language FROM GuildCatalog WHERE guildId="${id}"`).then((row: any) => {
+			return db.get(`SELECT guildName, adminChannel, rolesAllowed, language, masterSheet FROM GuildCatalog WHERE guildId="${id}"`).then((row: any) => {
 				if (row) {
 					return row;
 				} else {
@@ -62,12 +62,13 @@ export class Configuration {
 
 		this.getGuildData(guild.id, guild.name).then((rowValue) => {
 			if (rowValue) {
-			message.channel.send(`
+				message.channel.send(`
 This server ${rowValue.guildName} has the following configurations:
 
 - Admin channel: ${rowValue.adminChannel}
 - Language: ${rowValue.language}
 - Roles allowed to use the bot: ${rowValue.rolesAllowed}
+- Master standings / rules sheet: <${rowValue.masterSheet || '_Empty_'}>
 
 Set any configuration using \`set-config\` \`config\` \`newValue\`.
 `);
@@ -103,6 +104,23 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 
 		this.setGuildData(guild.id, property, value).then((rowValue) => {
 			message.channel.send(`This server ${guild.name} updated ${property} to ${value}`);
+		});
+	}
+
+	getMasterStandings(message: Discord.Message) {
+		const guild = message.guild;
+
+		if (!guild) { return; }
+
+		this.getGuildData(guild.id, guild.name).then((rowValue) => {
+			if (rowValue) {
+				message.react('👍');
+				message.channel.send(`
+You can find this current Draft standings' / rules' sheet here: <${rowValue.masterSheet || '_Empty_'}>
+`);
+			} else {
+				console.log(`Error getting config data`);
+			}
 		});
 	}
 
@@ -192,12 +210,14 @@ Set any configuration using \`set-config\` \`config\` \`newValue\`.
 		const [,,divisionName] = message.content.split(' ');
 
 		if (!divisionName) {
+			message.react('👎');
 			message.channel.send(`Division ${divisionName} is not on the current draft (or server)`);
 			return;
 		}
 
 		this.getDivisionData(guild.id, null, divisionName).then((rowValue) => {
 			if (rowValue) {
+				message.react('👍');
 				message.channel.send(`
 The division **${rowValue.divisionName}** has the following:
 
@@ -206,6 +226,7 @@ The division **${rowValue.divisionName}** has the following:
 
 `);
 			} else {
+				message.react('👎');
 				message.channel.send(`No data found for **${divisionName}**`);
 			}
 		});

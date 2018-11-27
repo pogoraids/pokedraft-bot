@@ -13,6 +13,7 @@ Commands:
 - **clear-division** \`<division>\`: Deletes the \`<division>\` role (but keeps the channel -for chat purposes-).
 - **draft-info**: Lists all the divisions created for the ongoing draft.
 - **division-info** \`<division>\`: Lists the \`<division>\` info for the ongoing draft.
+- **standings** or **scores**: Retrieves the master sheet / scorecard saved for the current Draft on the server.
 `,
 	GAME_ON_1: 'Draft starts ',
 	GAME_ON_2: 'The order is the following: ',
@@ -44,6 +45,7 @@ Comandos:
 - **clear-division** \`<division>\`: Elimina el rol \`<division>\` (pero mantiene el canal -por motivos de comunidad-).
 - **draft-info**: Detalla todas las divisiones creadas para el draft en curso.
 - **division-info** \`<division>\`: Detalla la información de la \`<division>\` para el draft en curso.
+- **standings** o **scores**: Muestra la hoja maestra / puntuaciones guardada para el Draft actual en el servidor.
 `,
 	GAME_ON_1: 'Comienza el Draft ',
 	GAME_ON_2: 'El orden es el siguiente: ',
