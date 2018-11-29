@@ -1,8 +1,8 @@
 export const GREETING = "Bot is alive";
 
 export const EN = {
-	GREETING: "Bot is alive",
-	HELP: `**PokeDraft-Bot** by @enanox
+  GREETING: "Bot is alive",
+  HELP: `**PokeDraft-Bot** by @enanox
 
 Commands:
 
@@ -15,26 +15,31 @@ Commands:
 - **division-info** \`<division>\`: Lists the \`<division>\` info for the ongoing draft.
 - **standings** or **scores**: Retrieves the master sheet / scorecard saved for the current Draft on the server.
 `,
-	GAME_ON_1: 'Draft starts ',
-	GAME_ON_2: 'The order is the following: ',
-	GAME_ON_3: 'Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command like this: `@draft-bot division-info yourDivisionName`',
-	ERRORS: {
-		MISSING_GUILD_CONFIG: 'Missing guild configuration, due to not existing or not having being set.',
-		GAME_ON_NOT_ALLOWED: 'You cannot use the command `game-on` here.',
-		GAME_ON_EMPTY_DIVISION: 'This division have no members assigned. Please run `assign-division` first.',
-		GAME_ON_MISSING_PARAMETERS: 'You must specify the division.',
-		DIVISION_NOT_FOUND: '%1 division not found!',
-		ROLE_NOT_FOUND: '%1 role not found!',
-		DROP_DIVISION_NOT_FOUND: 'Division **%1** is not on the current draft (or server)!',
-		DROP_DIVISION_NO_DATA: 'No data found for division **%1**',
-		DROP_DIVISION_NOT_ALLOWED: 'You cannot use the command `drop-division` here'
-	},
-	DROP_DIVISION_ANSWER: 'The division **%1** has been removed from the current Draft.'
+  GAME_ON_1: "Draft starts ",
+  GAME_ON_2: "The order is the following: ",
+  GAME_ON_3:
+    "Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command like this: `@draft-bot division-info yourDivisionName`",
+  ERRORS: {
+    MISSING_GUILD_CONFIG:
+      "Missing guild configuration, due to not existing or not having being set.",
+    GAME_ON_NOT_ALLOWED: "You cannot use the command `game-on` here.",
+    GAME_ON_EMPTY_DIVISION:
+      "This division have no members assigned. Please run `assign-division` first.",
+    GAME_ON_MISSING_PARAMETERS: "You must specify the division.",
+    DIVISION_NOT_FOUND: "%1 division not found!",
+    ROLE_NOT_FOUND: "%1 role not found!",
+    DROP_DIVISION_NOT_FOUND:
+      "Division **%1** is not on the current draft (or server)!",
+    DROP_DIVISION_NO_DATA: "No data found for division **%1**",
+    DROP_DIVISION_NOT_ALLOWED: "You cannot use the command `drop-division` here"
+  },
+  DROP_DIVISION_ANSWER:
+    "The division **%1** has been removed from the current Draft."
 };
 
 export const ES = {
-	GREETING: "Bot is alive",
-	HELP: `**PokeDraft-Bot** por @enanox
+  GREETING: "Bot is alive",
+  HELP: `**PokeDraft-Bot** por @enanox
 
 Comandos:
 
@@ -47,19 +52,24 @@ Comandos:
 - **division-info** \`<division>\`: Detalla la información de la \`<division>\` para el draft en curso.
 - **standings** o **scores**: Muestra la hoja maestra / puntuaciones guardada para el Draft actual en el servidor.
 `,
-	GAME_ON_1: 'Comienza el Draft ',
-	GAME_ON_2: 'El orden es el siguiente: ',
-	GAME_ON_3: 'Haz tu elección y etiqueta a la siguiente persona en el orden, recuerda: el último elige dos y revierte el orden de elección.\n\nPuedes consultar la información de la división con una etiqueta y el comando así: `@draft-bot division-info nombreDivision`',
-	ERRORS: {
-		MISSING_GUILD_CONFIG: 'Falta la configuración del servidor, ya sea porque no existe o no se ha registrado.',
-		GAME_ON_NOT_ALLOWED: 'No puedes usar el comando `game-on` aquí.',
-		GAME_ON_EMPTY_DIVISION: 'Esta división no tiene miembros asignados. Por favor corra `assign-division` primero.',
-		GAME_ON_MISSING_PARAMETERS: 'Debes especificar la división.',
-		DIVISION_NOT_FOUND: 'División %1 no encontrada!',
-		ROLE_NOT_FOUND: 'Rol %1 no encontrado!',
-		DROP_DIVISION_NOT_FOUND: 'La división **%1** no existe en el draft actual (o servidor)!',
-		DROP_DIVISION_NO_DATA: 'No hay datos para la división **%1**',
-		DROP_DIVISION_NOT_ALLOWED: 'No puedes usar el comando `drop-division` aquí.'
-	},
-	DROP_DIVISION_ANSWER: 'La división **%1** ha sido removida del Draft en curso.'
-}
+  GAME_ON_1: "Comienza el Draft ",
+  GAME_ON_2: "El orden es el siguiente: ",
+  GAME_ON_3:
+    "Haz tu elección y etiqueta a la siguiente persona en el orden, recuerda: el último elige dos y revierte el orden de elección.\n\nPuedes consultar la información de la división con una etiqueta y el comando así: `@draft-bot division-info nombreDivision`",
+  ERRORS: {
+    MISSING_GUILD_CONFIG:
+      "Falta la configuración del servidor, ya sea porque no existe o no se ha registrado.",
+    GAME_ON_NOT_ALLOWED: "No puedes usar el comando `game-on` aquí.",
+    GAME_ON_EMPTY_DIVISION:
+      "Esta división no tiene miembros asignados. Por favor corra `assign-division` primero.",
+    GAME_ON_MISSING_PARAMETERS: "Debes especificar la división.",
+    DIVISION_NOT_FOUND: "División %1 no encontrada!",
+    ROLE_NOT_FOUND: "Rol %1 no encontrado!",
+    DROP_DIVISION_NOT_FOUND:
+      "La división **%1** no existe en el draft actual (o servidor)!",
+    DROP_DIVISION_NO_DATA: "No hay datos para la división **%1**",
+    DROP_DIVISION_NOT_ALLOWED: "No puedes usar el comando `drop-division` aquí."
+  },
+  DROP_DIVISION_ANSWER:
+    "La división **%1** ha sido removida del Draft en curso."
+};
