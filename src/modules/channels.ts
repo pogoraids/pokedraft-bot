@@ -186,9 +186,7 @@ export class Channels {
     });
   }
 
-  createBotChannel(client: Discord.Client, db: any) {
-    const guild = client.guilds.first();
-
+  createBotChannel(guild: Discord.Guild, db: any) {
     if (!guild) {
       return;
     }
@@ -197,55 +195,55 @@ export class Channels {
       return;
     }
 
-    for (let guild of client.guilds.array()) {
-      if (!guild.channels.find(channel => channel.name === "draftbot-admin")) {
-        const role = guild.roles.find(role =>
-          role.hasPermission([Discord.Permissions.FLAGS.ADMINISTRATOR])
-        );
-        //this.getPermissions(guild, 'ADMIN', role.id).then(adminPermissions => {
-        const permissionsArray = [];
-        const generalPermissions = [
-          "SEND_MESSAGES",
-          "READ_MESSAGES",
-          "READ_MESSAGE_HISTORY"
-        ];
-        permissionsArray.push({
-          id: role.id,
-          allowed: generalPermissions
-        });
-        permissionsArray.push({
-          id: guild.defaultRole.id,
-          denied: generalPermissions
-        });
-        permissionsArray.push({
-          id: APP_ID,
-          allowed: generalPermissions
-        });
-        const botChannelPermissions = [...permissionsArray];
+    //for (let guild of client.guilds.array()) {
+    if (!guild.channels.find(channel => channel.name === "draftbot-admin")) {
+      const role = guild.roles.find(role =>
+        role.hasPermission([Discord.Permissions.FLAGS.ADMINISTRATOR])
+      );
+      //this.getPermissions(guild, 'ADMIN', role.id).then(adminPermissions => {
+      const permissionsArray = [];
+      const generalPermissions = [
+        "SEND_MESSAGES",
+        "READ_MESSAGES",
+        "READ_MESSAGE_HISTORY"
+      ];
+      permissionsArray.push({
+        id: role.id,
+        allowed: generalPermissions
+      });
+      permissionsArray.push({
+        id: guild.defaultRole.id,
+        denied: generalPermissions
+      });
+      permissionsArray.push({
+        id: APP_ID,
+        allowed: generalPermissions
+      });
+      const botChannelPermissions = [...permissionsArray];
 
-        guild
-          .createChannel("draftbot-admin", "text", botChannelPermissions)
-          .then((channel: Discord.GuildChannel) => {
-            console.log("Admin channel created for guild: " + guild.name);
-            new BotDBWrapper().createGuildCatalog();
-            new BotDBWrapper().createDivisionCatalog();
-          });
-        //})
-      } else {
-        console.log("Admin channel already created on " + guild.name);
+      guild
+        .createChannel("draftbot-admin", "text", botChannelPermissions)
+        .then((channel: Discord.GuildChannel) => {
+          console.log("Admin channel created for guild: " + guild.name);
+          new BotDBWrapper().createGuildCatalog(guild.id);
+          new BotDBWrapper().createDivisionCatalog(guild.id);
+        });
+      //})
+    } else {
+      console.log("Admin channel already created on " + guild.name);
 
-        /*db.get('select * from GuildCatalog').then(v=>{
+      /*db.get('select * from GuildCatalog').then(v=>{
 					console.log(v);
 				})*/
 
-        new BotDBWrapper().getGuildData(
-          guild.id,
-          guild.name
-        ); /*.then((a) => {
+      new BotDBWrapper().getGuildData(
+        guild.id,
+        guild.name
+      ); /*.then((a) => {
 					console.log('AAAA', a);
 				})*/
-      }
     }
+    //}
   }
 
   getPermissions(
