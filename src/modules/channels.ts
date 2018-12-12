@@ -1,6 +1,7 @@
 import * as Discord from "discord.js";
 import { APP_ID } from "../constants/app";
 import { Configuration } from "./configuration";
+import { BotDBWrapper } from "../utils/sqlite/botDbWrapper";
 import { Helpers } from "../utils/helpers";
 import * as L10n from "../constants/messages";
 
@@ -16,7 +17,7 @@ export class Channels {
 
     if (!guild) return;
 
-    new Configuration().getGuildData(guild.id).then(configData => {
+    new BotDBWrapper().getGuildData(guild.id).then(configData => {
       if (configData) {
         let authorizedRoles = configData.rolesAllowed.split(",");
         let guildMember = guild.members.find(
@@ -73,7 +74,7 @@ export class Channels {
 
     if (!guild) return;
 
-    new Configuration().getGuildData(guild.id).then(configData => {
+    new BotDBWrapper().getGuildData(guild.id).then(configData => {
       if (configData) {
         let authorizedRoles = configData.rolesAllowed.split(",");
         let guildMember = guild.members.find(
@@ -155,18 +156,18 @@ export class Channels {
                         "Division " + division + " and role created!"
                       );
 
-                      new Configuration()
+                      new BotDBWrapper()
                         .getAllDivisionsFromGuild(guild.id)
                         .then((data: any[]) => {
                           if (!data) {
-                            new Configuration().setDivisionData(
+                            new BotDBWrapper().setDivisionData(
                               guild.id,
                               "1",
                               ["divisionName"],
                               [division]
                             );
                           } else {
-                            new Configuration().setDivisionData(
+                            new BotDBWrapper().setDivisionData(
                               guild.id,
                               "" + (data.length + 1),
                               ["divisionName"],
@@ -226,8 +227,8 @@ export class Channels {
           .createChannel("draftbot-admin", "text", botChannelPermissions)
           .then((channel: Discord.GuildChannel) => {
             console.log("Admin channel created for guild: " + guild.name);
-            new Configuration(db).createGuildCatalog();
-            new Configuration(db).createDivisionCatalog();
+            new BotDBWrapper().createGuildCatalog();
+            new BotDBWrapper().createDivisionCatalog();
           });
         //})
       } else {
@@ -237,7 +238,7 @@ export class Channels {
 					console.log(v);
 				})*/
 
-        new Configuration().getGuildData(
+        new BotDBWrapper().getGuildData(
           guild.id,
           guild.name
         ); /*.then((a) => {
@@ -264,7 +265,7 @@ export class Channels {
     } = {};
     let permissionsArray = [];
 
-    return new Configuration()
+    return new BotDBWrapper()
       .getGuildData(guild.id)
       .then(rowData => {
         if (rowData && rowData.rolesAllowed) {
@@ -322,7 +323,7 @@ export class Channels {
 
   assignToDivision(message: Discord.Message, options: string) {
     const guild = message.guild;
-    const configADO = new Configuration();
+    const configADO = new BotDBWrapper();
 
     if (!guild) {
       return;
@@ -440,7 +441,7 @@ export class Channels {
 
   gameOn(message: Discord.Message, args: string) {
     const guild = message.guild;
-    const configADO = new Configuration();
+    const configADO = new BotDBWrapper();
 
     if (!guild) {
       return;

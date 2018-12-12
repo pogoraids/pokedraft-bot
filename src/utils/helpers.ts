@@ -1,10 +1,10 @@
 import * as Discord from "discord.js";
-import { Configuration } from "../modules/configuration";
+import { BotDBWrapper } from "./sqlite/botDbWrapper";
 import { EN } from "../constants/messages";
 
 export class Helpers {
   static isAdminChannel(message: Discord.Message) {
-    return new Configuration().getGuildData(message.guild.id).then(
+    return new BotDBWrapper().getGuildData(message.guild.id).then(
       guildData => {
         if (guildData && guildData.adminChannel) {
           const fromConfig = message.guild.channels.find(
