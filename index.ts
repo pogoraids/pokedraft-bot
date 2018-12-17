@@ -21,12 +21,13 @@ export class Index {
         sql
           .open(resolve(dirname(".") + `/database/${guild.id}.sqlite`))
           .then((database: sql.Database) => {
-            db = database;
-            new Channels().createBotChannel(guild, db);
-            // console.log(db);
-            // console.log('database created');
-            //new Configuration(db).createGuildCatalog();
-            // new Configuration(db).createDivisionCatalog();
+            new Channels().createBotChannel(guild);
+          })
+          .catch(reason => {
+            console.error(
+              "Failed to retrieve database file / generic error\n",
+              reason
+            );
           });
       });
     });

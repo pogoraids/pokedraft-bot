@@ -186,12 +186,8 @@ export class Channels {
     });
   }
 
-  createBotChannel(guild: Discord.Guild, db: any) {
+  createBotChannel(guild: Discord.Guild) {
     if (!guild) {
-      return;
-    }
-    if (!db) {
-      console.error("NO DB!");
       return;
     }
 
