@@ -4,3 +4,4 @@ src/config/token
 *.sqlite
 npm-debug.log
 package-lock.json
+*.env
