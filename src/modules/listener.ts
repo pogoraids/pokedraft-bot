@@ -24,7 +24,8 @@ export class Listener {
 
     if (
       (!!summoned && summoned.id === ID) ||
-      message.content.lastIndexOf("<@" + ID + ">") === 0
+      message.content.lastIndexOf("<@" + ID + ">") === 0 ||
+      !!message.content.startsWith('&')
     ) {
       if (message.content.lastIndexOf("create-draft") !== -1) {
         new Channels().createDraft(

@@ -3,6 +3,7 @@ import * as Discord from "discord.js";
 import { BotDBWrapper } from "../utils/sqlite/botDbWrapper";
 import { Helpers } from "../utils/helpers";
 import * as L10n from "../constants/messages";
+import { APP_ID } from "../constants/app";
 export class Configuration {
   constructor(private db?: sql.Database) {}
 
@@ -110,7 +111,11 @@ You can find this current Draft standings' / rules' sheet here: <${rowValue.mast
       return;
     }
 
-    const [, , divisionName] = message.content.split(" ");
+    let [, , divisionName] = message.content.split(" ");
+    
+    if (!divisionName && !message.mentions.users.has(APP_ID)) {
+      divisionName = message.content.split(" ")[1];
+    }
 
     if (!divisionName) {
       message.react("👎");

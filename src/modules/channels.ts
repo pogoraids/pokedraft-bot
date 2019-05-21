@@ -119,7 +119,7 @@ export class Channels {
           );
           return;
         }
-
+        
         if (guild.channels.find(channel => channel.name === division)) {
           message.channel.send(division + " channel already existent.");
         } else {
@@ -178,6 +178,9 @@ export class Channels {
                     });
                 }
               );
+            }).catch((err) => { 
+              console.error(err);
+              console.log("Check if rolesAllowed configuration was set for the user accessing this command.");
             });
         }
       } else {

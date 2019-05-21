@@ -18,7 +18,7 @@ Commands:
   GAME_ON_1: "Draft starts ",
   GAME_ON_2: "The order is the following: ",
   GAME_ON_3:
-    "Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command like this: `@draft-bot division-info yourDivisionName`",
+    "Make your pick and tag the next person in the order, remember, the last one picks twice and reverts the picking order.\n\nYou can check the division info by mentioning me and the command like this: `&division-info yourDivisionName`",
   ERRORS: {
     MISSING_GUILD_CONFIG:
       "Missing guild configuration, due to not existing or not having being set.",
@@ -55,7 +55,7 @@ Comandos:
   GAME_ON_1: "Comienza el Draft ",
   GAME_ON_2: "El orden es el siguiente: ",
   GAME_ON_3:
-    "Haz tu elección y etiqueta a la siguiente persona en el orden, recuerda: el último elige dos y revierte el orden de elección.\n\nPuedes consultar la información de la división con una etiqueta y el comando así: `@draft-bot division-info nombreDivision`",
+    "Haz tu elección y etiqueta a la siguiente persona en el orden, recuerda: el último elige dos y revierte el orden de elección.\n\nPuedes consultar la información de la división con una etiqueta y el comando así: `&division-info nombreDivision`",
   ERRORS: {
     MISSING_GUILD_CONFIG:
       "Falta la configuración del servidor, ya sea porque no existe o no se ha registrado.",
