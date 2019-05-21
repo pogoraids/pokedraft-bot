@@ -1,20 +1,22 @@
 {
   "name": "pokedraft-bot",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "PokeDraft utility bot",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "node node_modules\\typescript\\bin\\tsc",
     "compile-unix": "node node_modules/typescript/bin/tsc",
-	"run": "node index.js",
-	"prettier": "./node_modules/.bin/prettier --write **/*.ts"
+    "run": "node index.js",
+    "prettier": "./node_modules/.bin/prettier --write **/*.ts",
+    "start": "ts-node index.ts"
   },
   "author": "Mathias Rodriguez",
   "license": "GPL-2.0",
   "dependencies": {
     "discord.js": "^11.4.2",
     "sqlite": "^3.0.0",
+    "ts-node": "^8.1.0",
     "typescript": "^3.1.1"
   },
   "devDependencies": {

@@ -189,7 +189,7 @@ export class Channels {
     });
   }
 
-  createBotChannel(guild: Discord.Guild) {
+  createBotChannel(guild: Discord.Guild, client?: Discord.Client) {
     if (!guild) {
       return;
     }
@@ -238,9 +238,11 @@ export class Channels {
       new BotDBWrapper().getGuildData(
         guild.id,
         guild.name
-      ); /*.then((a) => {
-					console.log('AAAA', a);
-				})*/
+      ).then((guildData) => {
+					if (guildData) {
+            client.user.setPresence({ status: 'online', game: { name: guild.name + ' PokeDraft!' }});
+          }
+				});
     }
     //}
   }

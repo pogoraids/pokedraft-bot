@@ -21,7 +21,7 @@ export class Index {
         sql
           .open(resolve(dirname(".") + `/database/${guild.id}.sqlite`))
           .then((database: sql.Database) => {
-            new Channels().createBotChannel(guild);
+            new Channels().createBotChannel(guild, client);
           })
           .catch(reason => {
             console.error(
@@ -33,7 +33,6 @@ export class Index {
     });
 
     client.on("message", new Listener().parse);
-
     client.login(TOKEN.toString());
   }
 }
