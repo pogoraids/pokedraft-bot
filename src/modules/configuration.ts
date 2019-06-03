@@ -112,7 +112,7 @@ You can find this current Draft standings' / rules' sheet here: <${rowValue.mast
     }
 
     let [, , divisionName] = message.content.split(" ");
-    
+
     if (!divisionName && !message.mentions.users.has(APP_ID)) {
       divisionName = message.content.split(" ")[1];
     }
