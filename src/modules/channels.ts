@@ -119,7 +119,7 @@ export class Channels {
           );
           return;
         }
-        
+
         if (guild.channels.find(channel => channel.name === division)) {
           message.channel.send(division + " channel already existent.");
         } else {
@@ -178,9 +178,12 @@ export class Channels {
                     });
                 }
               );
-            }).catch((err) => { 
+            })
+            .catch(err => {
               console.error(err);
-              console.log("Check if rolesAllowed configuration was set for the user accessing this command.");
+              console.log(
+                "Check if rolesAllowed configuration was set for the user accessing this command."
+              );
             });
         }
       } else {
@@ -235,14 +238,14 @@ export class Channels {
 					console.log(v);
 				})*/
 
-      new BotDBWrapper().getGuildData(
-        guild.id,
-        guild.name
-      ).then((guildData) => {
-					if (guildData) {
-            client.user.setPresence({ status: 'online', game: { name: guild.name + ' PokeDraft!' }});
-          }
-				});
+      new BotDBWrapper().getGuildData(guild.id, guild.name).then(guildData => {
+        if (guildData) {
+          client.user.setPresence({
+            status: "online",
+            game: { name: guild.name + " PokeDraft!" }
+          });
+        }
+      });
     }
     //}
   }
@@ -394,7 +397,18 @@ export class Channels {
 
           for (let member of memberList) {
             for (let guildMember of members) {
-              if (guildMember.user.username == member) {
+              let foundInGuild = false;
+              let parsedId;
+
+              if (member.startsWith("<@")) {
+                parsedId = member.replace("<@", "").replace(">", "");
+
+                foundInGuild = !!guild.members.find(
+                  member => member.user.id === parsedId
+                );
+              }
+
+              if (!!foundInGuild || guildMember.user.username == member) {
                 guildMember.addRole(divisionRole);
                 userList.push(guildMember.displayName);
                 userNameList.push(
@@ -402,6 +416,10 @@ export class Channels {
                     "#" +
                     guildMember.user.discriminator
                 );
+              } else if (!!parsedId && !foundInGuild) {
+                userList.push(member);
+                userNameList.push(member);
+                break;
               }
             }
           }
@@ -433,7 +451,6 @@ export class Channels {
         } else {
           message.channel.send("No user was assigned to the role/division");
         }
-      } else {
       }
     });
   }
@@ -545,7 +562,9 @@ export class Channels {
                           member.user.discriminator == disc
                       );
 
-                      if (taggeableUser && taggeableUser.user.id) {
+                      if (shuffled.startsWith("<@")) {
+                        userNames.push(shuffled);
+                      } else if (taggeableUser && taggeableUser.user.id) {
                         userNames.push(taggeableUser.user);
                       }
                     });
