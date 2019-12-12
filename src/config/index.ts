@@ -14,5 +14,8 @@ export const ENV = {
   DB_NAME: process.env.DB_NAME || "draft",
   DB_USER: process.env.DB_USER || "root",
   DB_PASSWORD: process.env.DB_PASSWORD || "root",
-  DB_DIALECT: process.env.DB_DIALECT || "mysql"
+  DB_DIALECT: process.env.DB_DIALECT || "mysql",
+
+  API_ADMIN_USER: process.env.API_ADMIN_USER || "admin@pogoraids",
+  API_ADMIN_PASSWORD: process.env.API_ADMIN_PASSWORD || "admin"
 };

@@ -308,7 +308,7 @@ export class Channels {
           });
           permissionsArray.push({
             id: guild.defaultRole.id,
-            denied: permissions
+            allowed: permissions // ToDo
           });
           permissionsArray.push({
             id: APP_ID,

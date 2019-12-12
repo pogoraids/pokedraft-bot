@@ -7,9 +7,39 @@ import { Listener } from "./src/modules/listener";
 import { Channels } from "./src/modules/channels";
 import { Configuration } from "./src/modules/configuration";
 import { ENV } from "./src/config";
+import { ApolloClient } from "apollo-client";
+import { InMemoryCache } from "apollo-cache-inmemory";
+import { createHttpLink } from "apollo-link-http";
+import gql from "graphql-tag";
+import {fetch} from 'cross-fetch/polyfill';
+import { BackendService} from './src/utils/backend';
+const loginUser = gql`
+query {
+  loginUser(email: "enanox@pogoraids", password: "12345678") {
+    id
+    jwt
+    email
+  }
+}
+`;
+
+const apolloClient = new ApolloClient({
+  link: createHttpLink({
+    uri: 'http://localhost:3005/graphql',
+    fetch: fetch
+  }),
+  cache: new InMemoryCache()
+});
 
 export class Index {
   constructor() {
+    BackendService.apolloClient = apolloClient;
+    const api = new BackendService();
+
+    api.loginUser().then(data => {
+      console.log(data);
+    });
+
     const client = new Discord.Client();
     const TOKEN = ENV.DISCORD_TOKEN;
 
