@@ -1,5 +1,7 @@
 import { Channels } from "./channels";
 import { Configuration } from "./configuration";
+import { Autodraft } from "./autodraft";
+import { Members } from "./members";
 import * as Discord from "discord.js";
 const ID = "498873323682529301";
 
@@ -13,7 +15,7 @@ const commands = [
 ];
 
 export class Listener {
-  constructor() {}
+  constructor() { }
 
   parse(message: Discord.Message) {
     if (!message.guild) return;
@@ -72,7 +74,35 @@ export class Listener {
         message.content.lastIndexOf("scores") !== -1
       ) {
         new Configuration().getMasterStandings(message);
+      } else if (
+        message.content.lastIndexOf("tourney-info") !== -1 ||
+        message.content.lastIndexOf("poke-draft") !== -1
+      ) {
+        new Members().getTourneyInfo(message);
+      } else if (
+        message.content.lastIndexOf("pod-info") !== -1 ||
+        message.content.lastIndexOf("div-info") !== -1
+      ) {
+        new Members().getPodInfo(message);
+      } else if (
+        message.content.lastIndexOf('picks') !== -1
+      ) {
+        new Members().getPodInfo(message, { onlyPicks: true });
+      } else if (
+        message.content.lastIndexOf('add-pod') !== -1
+      ) {
+        new Channels().addPodAndChannel(message);
+      } else if (
+        message.content.lastIndexOf('link-pod') !== -1
+      ) {
+        new Channels().linkExistingChannelWithNewPod(message);
+      } else if (
+        ['name', 'mechanic', 'multiPod', 'userId', 'iconImageUrl', 'tournamentId'].some(k => message.content.includes(`update-pod-${k}`))
+      ) {
+        new Channels().updatePodData(message);
       }
+    } else {
+      Autodraft.response(message);
     }
   }
 }

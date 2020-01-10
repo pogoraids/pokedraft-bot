@@ -13,27 +13,39 @@ import { createHttpLink } from "apollo-link-http";
 import gql from "graphql-tag";
 import {fetch} from 'cross-fetch/polyfill';
 import { BackendService} from './src/utils/backend';
-const loginUser = gql`
-query {
-  loginUser(email: "enanox@pogoraids", password: "12345678") {
-    id
-    jwt
-    email
-  }
-}
-`;
-
+/*
 const apolloClient = new ApolloClient({
+  typeDefs: gql`
+  type TournamentSettings {
+    id: Int!
+    limit: Int
+    onlySolo: Boolean
+    scoringType: String
+    timeOrder: Boolean
+    multiPod: Boolean
+    customScoringModel: String
+    masterSheet: String
+    banlistId: Int
+    banlist: [Banlist]
+}
+
+type Banlist {
+    id: Int!
+    dexId: Int!
+    species: String
+    allowed: Boolean
+}
+  `,
   link: createHttpLink({
     uri: 'http://localhost:3005/graphql',
     fetch: fetch
   }),
   cache: new InMemoryCache()
-});
+});*/
 
 export class Index {
   constructor() {
-    BackendService.apolloClient = apolloClient;
+    // BackendService.apolloClient = apolloClient;
     const api = new BackendService();
 
     api.loginUser().then(data => {

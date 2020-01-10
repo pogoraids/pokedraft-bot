@@ -1,68 +1,81 @@
 import * as Discord from "discord.js";
-import { APP_ID } from "../constants/app";
+import { Message, Role, RichEmbed } from 'discord.js';
+import { APP_ID, embedFooter, mechanicFormatsImgUrl } from "../constants/app";
 import { Configuration } from "./configuration";
 import { BotDBWrapper } from "../utils/sqlite/botDbWrapper";
 import { Helpers } from "../utils/helpers";
 import * as L10n from "../constants/messages";
+import { BackendService } from "../utils/backend";
 
 export class Channels {
-  constructor() {}
+  footer: { text: string, icon: string } = embedFooter;
 
-  createDraft(
+  constructor() { }
+
+  async createDraft(
     message: Discord.Message,
-    name: string,
+    name2: string,
     members?: Discord.GuildMember[]
   ) {
-    const guild = message.guild;
+    const { guild, channel } = message;
+    const api = new BackendService();
+    const [, name, mechanic, addRole = 'y'] = message.content.split(" ");
 
     if (!guild) return;
 
-    new BotDBWrapper().getGuildData(guild.id).then(configData => {
-      if (configData) {
-        let authorizedRoles = configData.rolesAllowed.split(",");
-        let guildMember = guild.members.find(
-          member => message.author.id == member.id
-        );
+    const configData = await new BotDBWrapper().getGuildData(guild.id);
 
-        if (
-          !guildMember.roles.find(role => role.hasPermissions("ADMINISTRATOR"))
-        ) {
-          console.log("User doesn't have the ADMINISTRATOR role");
+    if (configData) {
+      let authorizedRoles = configData.rolesAllowed.split(",");
+      let guildMember = guild.members.find(
+        member => message.author.id == member.id
+      );
 
-          let found = false;
+      if (
+        !guildMember.roles.find(role => role.hasPermissions("ADMINISTRATOR"))
+      ) {
+        console.log("User doesn't have the ADMINISTRATOR role");
 
-          for (const authRole of authorizedRoles) {
-            if (guildMember.roles.find(role => role.id === authRole)) {
-              found = true;
-              break;
-            }
-          }
+        let found = false;
 
-          if (!found) {
-            message.channel.send(
-              "You cannot use `create-draft` here or you don't have enough permissions."
-            );
-            return;
+        for (const authRole of authorizedRoles) {
+          if (guildMember.roles.find(role => role.id === authRole)) {
+            found = true;
+            break;
           }
         }
 
-        if (guild.channels.find(channel => channel.name === name)) {
-          message.channel.send(name + " category already existent.");
-        } else {
-          this.getPermissions(guild, "HIDDEN").then(categoryPermissions => {
-            guild
-              .createChannel(name, "category", categoryPermissions)
-              .then((category: Discord.CategoryChannel) => {
-                message.channel.send("Category " + name + " created!");
-              });
-          });
+        if (!found) {
+          channel.send(
+            "You cannot use `create-draft` here or you don't have enough permissions."
+          );
+          return;
         }
-      } else {
-        message.channel.send(
-          `No server config established (namely rolesAllowed). Please do so with set-config`
-        );
       }
-    });
+
+      if (guild.channels.find(channel => channel.name === name)) {
+        channel.send(name + " category already existent.");
+      } else {
+        const categoryPermissions = await this.getPermissions(guild, "HIDDEN");
+        const newCategory = await guild.createChannel(name, "category", categoryPermissions);
+
+        if (newCategory) {
+          channel.send("Category " + name + " created!");
+          const tournament = await api.createTournament(newCategory, message);
+          const tSettings = await api.addTournamentSettings(tournament);
+
+          if (addRole && ['y', 'Y', 'YES', 'yes'].lastIndexOf(addRole) !== -1) {
+            const newRole = await guild.createRole({ name, mentionable: true });
+            console.log(newRole);
+            channel.send(`New role ${name} created!`);
+          }
+        }
+      }
+    } else {
+      channel.send(
+        `No server config established (namely rolesAllowed). Please do so with set-config`
+      );
+    }
   }
 
   createDivision(
@@ -383,8 +396,8 @@ export class Channels {
                 userList.push(guildMember.displayName);
                 userNameList.push(
                   guildMember.user.username +
-                    "#" +
-                    guildMember.user.discriminator
+                  "#" +
+                  guildMember.user.discriminator
                 );
               }
             }
@@ -413,8 +426,8 @@ export class Channels {
                 userList.push(guildMember.displayName);
                 userNameList.push(
                   guildMember.user.username +
-                    "#" +
-                    guildMember.user.discriminator
+                  "#" +
+                  guildMember.user.discriminator
                 );
               } else if (!!parsedId && !foundInGuild) {
                 userList.push(member);
@@ -428,10 +441,10 @@ export class Channels {
         if (userList.length > 0) {
           message.channel.send(
             "Users " +
-              userList.join(", ") +
-              " added to the " +
-              division +
-              " division!"
+            userList.join(", ") +
+            " added to the " +
+            division +
+            " division!"
           );
 
           configADO
@@ -571,9 +584,9 @@ export class Channels {
 
                     const answer = `${L10n[isIt.language].GAME_ON_1}<@&${
                       divisionRole.id
-                    }>\n\n${L10n[isIt.language].GAME_ON_2}\n\n${userNames.join(
-                      "\n"
-                    )}\n\n${L10n[isIt.language].GAME_ON_3}`;
+                      }>\n\n${L10n[isIt.language].GAME_ON_2}\n\n${userNames.join(
+                        "\n"
+                      )}\n\n${L10n[isIt.language].GAME_ON_3}`;
 
                     message.react("👍");
                     (<Discord.TextChannel>divisionChannel).send(answer);
@@ -595,9 +608,9 @@ export class Channels {
                   .then(value => {
                     const answer = `${L10n[isIt.language].GAME_ON_1}<@&${
                       divisionRole.id
-                    }>\n\n${L10n[isIt.language].GAME_ON_2}\n\n${memberList.join(
-                      "\n"
-                    )}\n\n${L10n[isIt.language].GAME_ON_3}`;
+                      }>\n\n${L10n[isIt.language].GAME_ON_2}\n\n${memberList.join(
+                        "\n"
+                      )}\n\n${L10n[isIt.language].GAME_ON_3}`;
 
                     message.react("👍");
                     (<Discord.TextChannel>divisionChannel).send(answer);
@@ -646,5 +659,272 @@ export class Channels {
     });
 
     message.channel.send(name + " role deleted.");
+  }
+
+  async addPodAndChannel(message: Message) {
+    const { guild, channel, channel: { id } } = message;
+    const api = new BackendService();
+
+    // ToDo: Here the permissions + channel check should be made
+    const [, catNameOrId, podName, mechanicOrFormat] = message.content.split(" ");
+
+    if (!catNameOrId) {
+      channel.send("Tournament " + catNameOrId + " not entered");
+      message.react("👎");
+      return;
+    }
+
+    const tournamentCategoryChannel = await guild.channels.find(channel => channel.id === catNameOrId || channel.name === catNameOrId);
+
+    if (!tournamentCategoryChannel || !tournamentCategoryChannel.id) {
+      channel.send("Tournament " + catNameOrId + " not found");
+      message.react("👎");
+      return;
+    }
+
+    if (!podName) {
+      channel.send(
+        "Both tournament and pod names / IDs must be specified"
+      );
+      return;
+    }
+
+    const existingPodChannel = guild.channels.find(channel => channel.name === podName);
+
+    if (existingPodChannel && existingPodChannel.id) {
+      channel.send(podName + " channel already existent.");
+      message.react("👎");
+      return;
+    }
+
+    const newPodRole = await guild.createRole({
+      name: podName,
+      permissions: [
+        "SEND_MESSAGES",
+        "READ_MESSAGES",
+        "READ_MESSAGE_HISTORY",
+        "EMBED_LINKS",
+        "ATTACH_FILES",
+        "ADD_REACTIONS"
+      ]
+    });
+
+    let permissions = [];
+
+    if (!newPodRole || !newPodRole.id) {
+      channel.send(`The role could not be created, please create it manually.`);
+    } else {
+      newPodRole.setMentionable(true);
+      const divisionPermissions = await this.getPermissions(guild, "DIVISION", newPodRole.id);
+
+      permissions = [...divisionPermissions];
+    }
+
+    const divisionChannel = await guild.createChannel(podName, "text", permissions);
+
+    if (!divisionChannel) {
+      channel.send(`${podName} channel could not be created, please create it manually.`);
+      message.react("👎");
+      return;
+    }
+
+    divisionChannel.setParent(tournamentCategoryChannel.id);
+
+    let mechanic = '', mechanicFormat = '';
+
+    if (!!mechanicOrFormat) {
+      let formatted = mechanicOrFormat.toLowerCase();
+      if (formatted === 'pvp' || formatted === 'pve') {
+        mechanic = formatted;
+      } else if (formatted === 'great' || formatted === 'ultra' || formatted === 'master') {
+        mechanic = 'pvp';
+        mechanicFormat = formatted;
+      } else if (formatted === 'solo' || formatted === 'team' || formatted === 'custom') {
+        mechanic = 'pve';
+        mechanicFormat = formatted;
+      }
+    }
+
+    const newPod = await api.createPod({
+      tournamentId: tournamentCategoryChannel.id,
+      id: divisionChannel.id,
+      name: podName,
+      mechanic,
+      mechanicFormat,
+    });
+
+    if (newPod) {
+      if (newPod.mechanicFormat) {
+        const createdEmbed = new RichEmbed();
+        createdEmbed.setTitle(`**${newPod.name}** pod created!`)
+          .setColor(0x00FF00)
+          .setFooter(this.footer.text, this.footer.icon)
+          .setThumbnail(mechanicFormatsImgUrl[newPod.mechanicFormat || newPod.mechanic])
+          .setDescription(`You can always check this pod thorough details on https://pogoraids.github.io/web/tournament/${newPod.tournamentId}/pod/${newPod.id}`);
+
+        channel.send(createdEmbed);
+      } else {
+        channel.send(`Pod **${podName}** and role created!`);
+      }
+      message.react("👍");
+    } else {
+      channel.send(`The pod could not be saved to the tournament. Please check the logs and try again.`);
+      message.react("👎");
+    }
+  }
+
+  async linkExistingChannelWithNewPod(message: Message) {
+    const { guild, channel, channel: { id } } = message;
+    const api = new BackendService();
+
+    // ToDo: Here the permissions + channel check should be made
+    const [, catNameOrId, podName, mechanicOrFormat] = message.content.split(" ");
+
+    if (!catNameOrId) {
+      channel.send("Tournament " + catNameOrId + " not entered");
+      message.react("👎");
+      return;
+    }
+
+    const tournamentCategoryChannel = await guild.channels.find(channel => channel.id === catNameOrId || channel.name === catNameOrId);
+
+    if (!tournamentCategoryChannel || !tournamentCategoryChannel.id) {
+      channel.send("Tournament " + catNameOrId + " not found");
+      message.react("👎");
+      return;
+    }
+
+    if (!podName) {
+      channel.send(
+        "Both tournament and pod names / IDs must be specified"
+      );
+      return;
+    }
+
+    const existingPodChannel = guild.channels.find(channel => channel.name === podName);
+
+    if (!existingPodChannel && existingPodChannel.id) {
+      channel.send(podName + " channel non existent or not found.");
+      message.react("👎");
+      return;
+    }
+
+    let mechanic = '', mechanicFormat = '';
+
+    if (!!mechanicOrFormat) {
+      let formatted = mechanicOrFormat.toLowerCase();
+      if (formatted === 'pvp' || formatted === 'pve') {
+        mechanic = formatted;
+      } else if (formatted === 'great' || formatted === 'ultra' || formatted === 'master') {
+        mechanic = 'pvp';
+        mechanicFormat = formatted;
+      } else if (formatted === 'solo' || formatted === 'team' || formatted === 'custom') {
+        mechanic = 'pve';
+        mechanicFormat = formatted;
+      }
+    }
+
+    const newPod = await api.createPod({
+      tournamentId: tournamentCategoryChannel.id,
+      id: existingPodChannel.id,
+      name: podName,
+      mechanic,
+      mechanicFormat,
+    });
+
+    if (newPod) {
+      if (newPod.mechanicFormat) {
+        const createdEmbed = new RichEmbed();
+        createdEmbed.setTitle(`**${newPod.name}** pod created!`)
+          .setColor(0x0000FF)
+          .setFooter(this.footer.text, this.footer.icon)
+          .setThumbnail(mechanicFormatsImgUrl[newPod.mechanicFormat || newPod.mechanic])
+          .setDescription(`The existing channel <@${newPod.id}> was added to the current tournament.\nYou can always check this pod thorough details on https://pogoraids.github.io/web/tournament/${newPod.tournamentId}/pod/${newPod.id}`);
+
+        channel.send(createdEmbed);
+      } else {
+        channel.send(`Pod **${podName}** created!`);
+      }
+      message.react("👍");
+    } else {
+      channel.send(`The pod could not be saved to the tournament. Please check the logs and try again.`);
+      message.react("👎");
+    }
+  }
+
+  async updatePodData(message: Message) {
+    const { guild, channel, channel: { id } } = message;
+    const api = new BackendService();
+
+    // ToDo: Here the permissions + channel check should be made
+    const [commandName, podNameOrId, ...rest] = message.content.split(" ");
+
+    if (!podNameOrId) {
+      channel.send("Pod name / ID not entered");
+      message.react("👎");
+      return;
+    }
+
+    const tournamentCategoryChannel = await guild.channels.find(channel => channel.id === podNameOrId || channel.name === podNameOrId);
+
+    if (!tournamentCategoryChannel || !tournamentCategoryChannel.id) {
+      channel.send("Pod " + podNameOrId + " not found");
+      message.react("👎");
+      return;
+    }
+
+    const availableUpdates = ['name', 'mechanic', 'multiPod', 'iconImageUrl', 'userId', 'tournamentId'];
+    const request: any = {};
+
+    for (const update of rest) {
+      let [key, value] = update.split('=');
+      // ToDo: handle spaces with double quotes
+      if (message.content.includes('"')) {
+
+      }
+
+      if (commandName.includes('-')) {
+        const parts = commandName.split('-'); 
+        key = parts[parts.length - 1];
+        value = update;
+      }
+
+      if (availableUpdates.findIndex(u => u === key) === -1) {
+        channel.send(`Update ${key} not available. `);
+        return;
+      }
+
+      request[key] = value;
+
+      if (value.toLowerCase() === 'great' || value.toLowerCase() === 'ultra' || value.toLowerCase() === 'master') {
+        request['mechanicFormat'] = value.toLowerCase();
+        request['mechanic'] = 'pvp';
+      } else if (value.toLowerCase() === 'solo' || value.toLowerCase() === 'team' || value.toLowerCase() === 'custom') {
+        request['mechanicFormat'] = value.toLowerCase();
+        request['mechanic'] = 'pve';
+      }
+    }
+
+    request.id = tournamentCategoryChannel.id;
+    const updatedPod = await api.updatePod(tournamentCategoryChannel.id, request);
+
+    if (updatedPod) {
+      if (updatedPod.mechanicFormat) {
+        const createdEmbed = new RichEmbed();
+        createdEmbed.setTitle(`**${updatedPod.name}** pod updated!`)
+          .setColor(0x0000FF)
+          .setFooter(this.footer.text, this.footer.icon)
+          .setThumbnail(mechanicFormatsImgUrl[updatedPod.mechanicFormat || updatedPod.mechanic] || mechanicFormatsImgUrl[updatedPod.mechanic])
+          .setDescription(`The existing pod data was updated.\nYou can always check this pod thorough details on https://pogoraids.github.io/web/tournament/${updatedPod.tournamentId}/pod/${updatedPod.id}`);
+
+        channel.send(createdEmbed);
+      } else {
+        channel.send(`Pod **${updatedPod.name}** updated!`);
+      }
+      message.react("👍");
+    } else {
+      channel.send(`The pod data could not be updated. Please check the logs and try again.`);
+      message.react("👎");
+    }
   }
 }
